@@ -1,0 +1,48 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.wrapper {
+  padding: 2.5rem;
+}
+
+.heading {
+  font-size: 1.75rem;
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 3rem;
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sidebar {
+  position: sticky;
+  top: 2rem;
+  height: max-content;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--border);
+  margin: 1rem 0;
+}
+
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: static;
+  }
+}

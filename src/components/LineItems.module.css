@@ -1,0 +1,153 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  padding: 0.5rem 1rem;
+  background: rgba(0,0,0,0.02);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.colDesc { flex: 2; }
+.colQty { width: 80px; flex-shrink: 0; }
+.colRate { width: 120px; flex-shrink: 0; }
+.colAmount { width: 100px; flex-shrink: 0; font-weight: 500; text-align: right; }
+.colAction { width: 40px; flex-shrink: 0; display: flex; justify-content: center; }
+
+.inputWithSymbol {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.symbol {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--text-muted);
+}
+
+.inputWithSymbol input {
+  padding-left: 2rem;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  padding: 0.5rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.deleteBtn:disabled {
+  color: var(--border);
+  cursor: not-allowed;
+}
+
+.addBtn {
+  background: transparent;
+  border: 1px dashed var(--primary);
+  color: var(--primary);
+  padding: 0.75rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.addBtn:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.totalsContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.totalsWrapper {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.totalsRow {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+}
+
+.grandTotal {
+  color: var(--foreground);
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+}
+
+.footerInputs {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fieldGroup label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .header { display: none; }
+  .row {
+    flex-wrap: wrap;
+    background: var(--input-bg);
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .colDesc { width: 100%; flex: none; }
+  .colQty { width: calc(50% - 0.5rem); }
+  .colRate { width: calc(50% - 0.5rem); }
+  .colAmount { width: auto; flex: 1; text-align: left; margin-top: 0.5rem; }
+  .colAction { width: auto; margin-top: 0.5rem; }
+}

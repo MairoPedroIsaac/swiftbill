@@ -1,0 +1,84 @@
+.container {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.heading {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--input-bg);
+}
+
+.option:hover {
+  border-color: var(--primary);
+}
+
+.option.selected {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.05);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.radio {
+  margin-top: 0.25rem;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.downloadBtn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.downloadBtn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.downloadBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
