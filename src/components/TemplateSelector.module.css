@@ -82,3 +82,28 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+.saveBtn {
+  background: white;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.saveBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

@@ -21,7 +21,7 @@ export default function HeroSection() {
             <span className={styles.highlight}>In Seconds.</span>
           </h1>
           <p className={styles.subtitle}>
-            No account required. Your data never leaves your device. Generate clean, accurate PDFs instantly.
+            Manage clients, track your items, and generate beautiful PDFs instantly. Save your invoices to your account and never lose track.
           </p>
           <button className={styles.ctaButton} onClick={scrollToGenerator}>
             Create Invoice <ArrowDown size={18} />

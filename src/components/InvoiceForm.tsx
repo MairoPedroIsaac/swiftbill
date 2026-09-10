@@ -4,12 +4,15 @@ import React from 'react';
 import { InvoiceState, CURRENCIES } from '@/types/invoice';
 import styles from './InvoiceForm.module.css';
 
+import NumericInput from './NumericInput';
+
 interface Props {
   state: InvoiceState;
   updateState: (field: keyof InvoiceState, value: any) => void;
+  customers?: any[];
 }
 
-export default function InvoiceForm({ state, updateState }: Props) {
+export default function InvoiceForm({ state, updateState, customers = [] }: Props) {
   return (
     <div className={styles.formContainer}>
       <div className={styles.row}>
@@ -28,8 +31,22 @@ export default function InvoiceForm({ state, updateState }: Props) {
             type="text" 
             placeholder="e.g. Global Industries" 
             value={state.clientName}
-            onChange={(e) => updateState('clientName', e.target.value)}
+            list="customers-list"
+            onChange={(e) => {
+              const val = e.target.value;
+              updateState('clientName', val);
+              
+              const match = customers.find(c => c.name.toLowerCase() === val.toLowerCase());
+              if (match && match.address && !state.clientAddress) {
+                updateState('clientAddress', match.address);
+              }
+            }}
           />
+          <datalist id="customers-list">
+            {customers.map((c: any) => (
+              <option key={c.id} value={c.name} />
+            ))}
+          </datalist>
         </div>
       </div>
       
@@ -56,11 +73,13 @@ export default function InvoiceForm({ state, updateState }: Props) {
 
       <div className={styles.row3}>
         <div className={styles.fieldGroup}>
-          <label>Invoice Number</label>
+          <label>Invoice Number (Auto-Generated)</label>
           <input 
             type="text" 
-            value={state.invoiceNumber}
-            onChange={(e) => updateState('invoiceNumber', e.target.value)}
+            value={state.invoiceNumber || "Auto-Generated (e.g. INV-001)"}
+            readOnly
+            style={{ opacity: 0.75, cursor: "not-allowed", backgroundColor: "rgba(0, 0, 0, 0.03)" }}
+            title="Invoice numbers are automatically incremented to prevent duplicate collisions"
           />
         </div>
         <div className={styles.fieldGroup}>
@@ -95,13 +114,10 @@ export default function InvoiceForm({ state, updateState }: Props) {
         </div>
         <div className={styles.fieldGroup}>
           <label>Tax Rate (%)</label>
-          <input 
-            type="number" 
-            min="0"
-            max="100"
-            step="0.01"
+          <NumericInput 
+            placeholder="0.00"
             value={state.taxRate}
-            onChange={(e) => updateState('taxRate', parseFloat(e.target.value) || 0)}
+            onChange={(val) => updateState('taxRate', val)}
           />
         </div>
       </div>

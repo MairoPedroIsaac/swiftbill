@@ -18,46 +18,98 @@ export const generatePDF = async (state: InvoiceState, template: 'minimal' | 'mo
     `${currencySymbol}${(item.quantity * item.rate).toFixed(2)}`
   ]);
 
+  // COLOR PALETTE (Considered, modern palette)
+  const CHARCOAL = [26, 26, 26];       // #1a1a1a (Primary text)
+  const MUTED_TEXT = [115, 115, 115];   // #737373 (Secondary metadata)
+  const DEEP_TEAL = [13, 79, 79];      // #0d4f4f (Modern Accent)
+  const MUTED_NAVY = [31, 45, 61];     // #1f2d3d (Minimal Accent)
+
   if (template === 'minimal') {
     doc.setFont('helvetica');
-    
-    // Header
-    doc.setFontSize(24);
-    doc.text('INVOICE', 14, 22);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Invoice Number: ${state.invoiceNumber}`, 14, 32);
-    doc.text(`Date: ${state.date}`, 14, 38);
-    if (state.dueDate) doc.text(`Due Date: ${state.dueDate}`, 14, 44);
 
-    // Business Info (Right aligned)
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text(state.senderName || 'Your Business', 200 - doc.getTextWidth(state.senderName || 'Your Business'), 22);
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    const senderLines = doc.splitTextToSize(state.senderAddress || '', 60);
-    doc.text(senderLines, 200 - 60, 28, { align: 'right', maxWidth: 60 });
+    // 1. Thin 2.5px top accent line instead of full block
+    doc.setLineWidth(0.8);
+    doc.setDrawColor(MUTED_NAVY[0], MUTED_NAVY[1], MUTED_NAVY[2]);
+    doc.line(14, 15, 196, 15);
 
-    // Client Info
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text('Bill To:', 14, 60);
+    // Header Title
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    doc.text('INVOICE', 14, 28);
+
+    // Business Name & Address (Right aligned)
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    const senderName = state.senderName || 'Your Business';
+    doc.text(senderName, 196, 28, { align: 'right' });
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+    const senderLines = doc.splitTextToSize(state.senderAddress || '', 65);
+    doc.text(senderLines, 196, 34, { align: 'right' });
+
+    // Thin section divider
+    doc.setLineWidth(0.3);
+    doc.setDrawColor(226, 232, 240);
+    doc.line(14, 48, 196, 48);
+
+    // Bill To & Invoice Metadata
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+    doc.text('BILL TO', 14, 56);
+
     doc.setFontSize(10);
-    doc.text(state.clientName || 'Client Name', 14, 66);
-    doc.setTextColor(100);
-    const clientLines = doc.splitTextToSize(state.clientAddress || '', 80);
-    doc.text(clientLines, 14, 72);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    doc.text(state.clientName || 'Client Name', 14, 62);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+    const clientLines = doc.splitTextToSize(state.clientAddress || '', 75);
+    doc.text(clientLines, 14, 68);
+
+    // Invoice Metadata (Right side)
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+
+    doc.text('Invoice Number:', 130, 56);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(MUTED_NAVY[0], MUTED_NAVY[1], MUTED_NAVY[2]);
+    doc.text(state.invoiceNumber || 'INV-001', 196, 56, { align: 'right' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+    doc.text('Date:', 130, 62);
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    doc.text(state.date || '', 196, 62, { align: 'right' });
+
+    if (state.dueDate) {
+      doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+      doc.text('Due Date:', 130, 68);
+      doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+      doc.text(state.dueDate, 196, 68, { align: 'right' });
+    }
 
     // Table
     autoTable(doc, {
-      startY: 95,
+      startY: 85,
       head: [['Description', 'Qty', 'Rate', 'Amount']],
       body: tableData,
       theme: 'plain',
-      styles: { font: 'helvetica', fontSize: 10, cellPadding: 6 },
-      headStyles: { fontStyle: 'bold', textColor: 0 },
+      styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 6, textColor: CHARCOAL },
+      headStyles: {
+        fontStyle: 'bold',
+        textColor: CHARCOAL,
+        fillColor: [248, 250, 252],
+        lineWidth: 0.1,
+        lineColor: [226, 232, 240]
+      },
       columnStyles: {
         1: { halign: 'center' },
         2: { halign: 'right' },
@@ -67,47 +119,93 @@ export const generatePDF = async (state: InvoiceState, template: 'minimal' | 'mo
 
   } else if (template === 'modern') {
     doc.setFont('helvetica');
-    
-    // Blue accent block
-    doc.setFillColor(59, 130, 246);
-    doc.rect(0, 0, 210, 40, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28);
-    doc.text('INVOICE', 14, 26);
-    
-    // Sender (Top right, white)
-    doc.setFontSize(12);
-    doc.text(state.senderName || 'Your Business', 200 - doc.getTextWidth(state.senderName || 'Your Business'), 20);
-    doc.setFontSize(10);
-    const senderLines = doc.splitTextToSize(state.senderAddress || '', 60);
-    doc.text(senderLines, 200 - 60, 26, { align: 'right', maxWidth: 60 });
 
-    doc.setTextColor(0);
-    doc.setFontSize(10);
-    doc.text('Billed To:', 14, 55);
-    doc.setFontSize(12);
+    // 1. Thin 2.5px top accent line + Small colored tab/label pill (Deep Teal)
+    doc.setLineWidth(0.8);
+    doc.setDrawColor(DEEP_TEAL[0], DEEP_TEAL[1], DEEP_TEAL[2]);
+    doc.line(14, 15, 196, 15);
+
+    // Small accent tag pill
+    doc.setFillColor(DEEP_TEAL[0], DEEP_TEAL[1], DEEP_TEAL[2]);
+    doc.roundedRect(14, 24, 5, 14, 1, 1, 'F');
+
+    // Header Title
+    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text(state.clientName || 'Client Name', 14, 62);
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    doc.text('INVOICE', 23, 35);
+
+    // Sender Info (Right aligned)
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    const senderName = state.senderName || 'Your Business';
+    doc.text(senderName, 196, 26, { align: 'right' });
+
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+    const senderLines = doc.splitTextToSize(state.senderAddress || '', 65);
+    doc.text(senderLines, 196, 32, { align: 'right' });
+
+    // Thin section divider
+    doc.setLineWidth(0.3);
+    doc.setDrawColor(226, 232, 240);
+    doc.line(14, 48, 196, 48);
+
+    // Bill To & Invoice Metadata
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(DEEP_TEAL[0], DEEP_TEAL[1], DEEP_TEAL[2]);
+    doc.text('BILLED TO', 14, 56);
+
     doc.setFontSize(10);
-    doc.setTextColor(100);
-    const clientLines = doc.splitTextToSize(state.clientAddress || '', 80);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    doc.text(state.clientName || 'Client Name', 14, 62);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+    const clientLines = doc.splitTextToSize(state.clientAddress || '', 75);
     doc.text(clientLines, 14, 68);
 
-    doc.setTextColor(0);
-    doc.text(`Invoice No: ${state.invoiceNumber}`, 140, 55);
-    doc.text(`Date: ${state.date}`, 140, 62);
-    if (state.dueDate) doc.text(`Due Date: ${state.dueDate}`, 140, 69);
+    // Metadata Right Column
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+
+    doc.text('Invoice Number:', 130, 56);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(DEEP_TEAL[0], DEEP_TEAL[1], DEEP_TEAL[2]);
+    doc.text(state.invoiceNumber || 'INV-001', 196, 56, { align: 'right' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+    doc.text('Date:', 130, 62);
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    doc.text(state.date || '', 196, 62, { align: 'right' });
+
+    if (state.dueDate) {
+      doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+      doc.text('Due Date:', 130, 68);
+      doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+      doc.text(state.dueDate, 196, 68, { align: 'right' });
+    }
 
     // Table
     autoTable(doc, {
-      startY: 90,
+      startY: 85,
       head: [['Description', 'Qty', 'Rate', 'Amount']],
       body: tableData,
       theme: 'grid',
-      styles: { font: 'helvetica', fontSize: 10, cellPadding: 6, lineColor: [226, 232, 240] },
-      headStyles: { fillColor: [248, 250, 252], textColor: [15, 23, 42], fontStyle: 'bold' },
+      styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 6, lineColor: [226, 232, 240] },
+      headStyles: {
+        fillColor: [241, 245, 249],
+        textColor: CHARCOAL,
+        fontStyle: 'bold',
+        lineWidth: 0.2
+      },
       columnStyles: {
         1: { halign: 'center' },
         2: { halign: 'right' },
@@ -116,44 +214,52 @@ export const generatePDF = async (state: InvoiceState, template: 'minimal' | 'mo
     });
 
   } else {
-    // Classic
+    // Classic (Traditional)
     doc.setFont('times');
-    
-    doc.setFontSize(24);
+
+    doc.setFontSize(22);
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
     doc.text(state.senderName || 'Your Business', 14, 24);
-    
-    doc.setFontSize(10);
+
+    doc.setFontSize(9.5);
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
     const senderLines = doc.splitTextToSize(state.senderAddress || '', 60);
-    doc.text(senderLines, 14, 32);
+    doc.text(senderLines, 14, 30);
 
-    doc.setFontSize(28);
-    doc.setTextColor(100);
-    doc.text('INVOICE', 200 - doc.getTextWidth('INVOICE'), 30);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(0);
-    
-    doc.line(14, 50, 196, 50);
-
-    doc.text('Bill To:', 14, 60);
+    doc.setFontSize(24);
     doc.setFont('times', 'bold');
-    doc.text(state.clientName || 'Client Name', 14, 66);
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    doc.text('INVOICE', 196, 26, { align: 'right' });
+
+    doc.setLineWidth(0.4);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 46, 196, 46);
+
+    doc.setFontSize(9.5);
     doc.setFont('times', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+    doc.text('Bill To:', 14, 56);
+
+    doc.setFont('times', 'bold');
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    doc.text(state.clientName || 'Client Name', 14, 62);
+
+    doc.setFont('times', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
     const clientLines = doc.splitTextToSize(state.clientAddress || '', 80);
-    doc.text(clientLines, 14, 72);
+    doc.text(clientLines, 14, 68);
 
-    doc.text(`Invoice Number: ${state.invoiceNumber}`, 140, 60);
-    doc.text(`Date: ${state.date}`, 140, 66);
-    if (state.dueDate) doc.text(`Due Date: ${state.dueDate}`, 140, 72);
+    doc.text(`Invoice Number: ${state.invoiceNumber}`, 140, 56);
+    doc.text(`Date: ${state.date}`, 140, 62);
+    if (state.dueDate) doc.text(`Due Date: ${state.dueDate}`, 140, 68);
 
-    // Table
     autoTable(doc, {
-      startY: 95,
+      startY: 85,
       head: [['Description', 'Qty', 'Rate', 'Amount']],
       body: tableData,
       theme: 'grid',
-      styles: { font: 'times', fontSize: 11, cellPadding: 5, lineColor: 0 },
-      headStyles: { fillColor: 240, textColor: 0, fontStyle: 'bold', lineWidth: 0.1 },
+      styles: { font: 'times', fontSize: 10, cellPadding: 5, lineColor: [200, 200, 200] },
+      headStyles: { fillColor: [245, 245, 245], textColor: CHARCOAL, fontStyle: 'bold', lineWidth: 0.1 },
       bodyStyles: { lineWidth: 0.1 },
       columnStyles: {
         1: { halign: 'center' },
@@ -165,46 +271,66 @@ export const generatePDF = async (state: InvoiceState, template: 'minimal' | 'mo
 
   // Totals Section (Applies to all)
   const finalY = (doc as any).lastAutoTable.finalY + 10;
-  
-  doc.setFontSize(10);
-  doc.setTextColor(0);
+
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'normal');
-  
+  doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+
   doc.text('Subtotal:', 140, finalY);
+  doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
   doc.text(`${currencySymbol}${subtotal.toFixed(2)}`, 196, finalY, { align: 'right' });
-  
+
+  let totalY = finalY + 8;
   if (state.taxRate > 0) {
-    doc.text(`Tax (${state.taxRate}%):`, 140, finalY + 8);
-    doc.text(`${currencySymbol}${tax.toFixed(2)}`, 196, finalY + 8, { align: 'right' });
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
+    doc.text(`Tax (${state.taxRate}%):`, 140, totalY);
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+    doc.text(`${currencySymbol}${tax.toFixed(2)}`, 196, totalY, { align: 'right' });
+    totalY += 8;
   }
 
-  doc.setFontSize(12);
+  // Divider line before total
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(226, 232, 240);
+  doc.line(140, totalY - 4, 196, totalY - 4);
+
+  // Total Amount - Heavyweight font & Accent color
+  const accentColor = template === 'modern' ? DEEP_TEAL : template === 'minimal' ? MUTED_NAVY : CHARCOAL;
+
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  const totalY = state.taxRate > 0 ? finalY + 18 : finalY + 10;
-  doc.text('Total:', 140, totalY);
-  doc.text(`${currencySymbol}${total.toFixed(2)}`, 196, totalY, { align: 'right' });
+  doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+  doc.text('Total:', 140, totalY + 4);
+
+  doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+  doc.text(`${currencySymbol}${total.toFixed(2)}`, 196, totalY + 4, { align: 'right' });
 
   // Notes & Terms
-  let textY = totalY + 20;
-  doc.setFontSize(10);
+  let textY = totalY + 16;
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100);
 
   if (state.notes) {
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
     doc.text('Notes:', 14, textY);
+
     doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
     const noteLines = doc.splitTextToSize(state.notes, 120);
-    doc.text(noteLines, 14, textY + 6);
-    textY += (noteLines.length * 5) + 10;
+    doc.text(noteLines, 14, textY + 5);
+    textY += (noteLines.length * 4.5) + 8;
   }
 
   if (state.terms) {
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
     doc.text('Terms & Conditions:', 14, textY);
+
     doc.setFont('helvetica', 'normal');
+    doc.setTextColor(MUTED_TEXT[0], MUTED_TEXT[1], MUTED_TEXT[2]);
     const termLines = doc.splitTextToSize(state.terms, 120);
-    doc.text(termLines, 14, textY + 6);
+    doc.text(termLines, 14, textY + 5);
   }
 
   doc.save(`${state.invoiceNumber || 'invoice'}.pdf`);

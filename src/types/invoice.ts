@@ -6,6 +6,8 @@ export interface LineItem {
 }
 
 export interface InvoiceState {
+  id?: string;
+  status?: string;
   senderName: string;
   senderAddress: string;
   clientName: string;

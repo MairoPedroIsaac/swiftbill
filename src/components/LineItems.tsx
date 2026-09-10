@@ -5,13 +5,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { Plus, Trash2 } from 'lucide-react';
 import { InvoiceState, LineItem, CURRENCIES } from '@/types/invoice';
 import styles from './LineItems.module.css';
+import NumericInput from './NumericInput';
 
 interface Props {
   state: InvoiceState;
   updateState: (field: keyof InvoiceState, value: any) => void;
+  catalogItems?: any[];
 }
 
-export default function LineItems({ state, updateState }: Props) {
+export default function LineItems({ state, updateState, catalogItems = [] }: Props) {
   const currencySymbol = CURRENCIES.find(c => c.code === state.currency)?.symbol || '$';
 
   const updateItem = (id: string, field: keyof LineItem, value: any) => {
@@ -52,26 +54,38 @@ export default function LineItems({ state, updateState }: Props) {
                 type="text" 
                 placeholder="Item description" 
                 value={item.description}
-                onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                list="items-list"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const newItems = state.items.map(it => {
+                    if (it.id === item.id) {
+                      const updated = { ...it, description: val };
+                      const match = catalogItems.find(c => c.name.toLowerCase() === val.toLowerCase());
+                      if (match && match.defaultRate) {
+                        updated.rate = match.defaultRate;
+                      }
+                      return updated;
+                    }
+                    return it;
+                  });
+                  updateState('items', newItems);
+                }}
               />
             </div>
             <div className={styles.colQty}>
-              <input 
-                type="number" 
-                min="1"
+              <NumericInput 
                 value={item.quantity}
-                onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
+                onChange={(val) => updateItem(item.id, 'quantity', val)}
+                placeholder="1"
               />
             </div>
             <div className={styles.colRate}>
               <div className={styles.inputWithSymbol}>
                 <span className={styles.symbol}>{currencySymbol}</span>
-                <input 
-                  type="number" 
-                  min="0"
-                  step="0.01"
+                <NumericInput 
                   value={item.rate}
-                  onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)}
+                  onChange={(val) => updateItem(item.id, 'rate', val)}
+                  placeholder="0.00"
                 />
               </div>
             </div>
@@ -90,6 +104,12 @@ export default function LineItems({ state, updateState }: Props) {
           </div>
         ))}
       </div>
+
+      <datalist id="items-list">
+        {catalogItems.map((itm: any) => (
+          <option key={itm.id} value={itm.name} />
+        ))}
+      </datalist>
 
       <button className={styles.addBtn} onClick={addItem}>
         <Plus size={16} /> Add Item

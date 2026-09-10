@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SwiftBill | Stateless Invoice Generator",
-  description: "Create professional invoices instantly without logging in. Fast, secure, and purely on your device.",
+  title: "SwiftBill | Professional Invoicing",
+  description: "Manage clients, track items, and create professional invoices instantly.",
 };
 
 export default function RootLayout({
