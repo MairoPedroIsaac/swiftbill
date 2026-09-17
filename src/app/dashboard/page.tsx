@@ -95,7 +95,7 @@ export default async function DashboardPage() {
     date: inv.date.toISOString().split("T")[0],
     status: inv.status,
     currency: inv.currency,
-    amount: inv.lineItems.reduce((sum, item) => sum + item.quantity * item.rate, 0) * (1 + (inv.taxRate || 0) / 100),
+    amount: inv.lineItems.reduce((sum: number, item: any) => sum + item.quantity * item.rate, 0) * (1 + (inv.taxRate || 0) / 100),
   }));
 
   return (
