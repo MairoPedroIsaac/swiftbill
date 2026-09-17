@@ -101,7 +101,10 @@ export default async function DashboardPage() {
 
   return (
     <DashboardClient
-      user={user}
+      user={{
+        ...user,
+        createdAt: user.createdAt ? user.createdAt.toISOString() : undefined,
+      }}
       initialStats={initialStats}
       initialInvoices={initialInvoices}
       initialPagination={initialPagination}
