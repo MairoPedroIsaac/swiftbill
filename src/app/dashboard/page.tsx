@@ -14,12 +14,13 @@ export default async function DashboardPage() {
   const dbUser = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: {
-      id: true, name: true, email: true, image: true, createdAt: true,
-      businessProfile: { select: { id: true } }
+      id: true, name: true, email: true, image: true,
+      businessProfile: { select: { id: true, createdAt: true } }
     }
   });
 
   const businessProfileId = dbUser?.businessProfile?.id;
+  const createdAt = dbUser?.businessProfile?.createdAt;
   const limit = 10;
 
   let invoices: any[] = [];
@@ -72,7 +73,7 @@ export default async function DashboardPage() {
     email: dbUser?.email || session.user.email,
     image: dbUser?.image || session.user.image,
     businessProfile: dbUser?.businessProfile || null,
-    createdAt: dbUser?.createdAt,
+    createdAt: createdAt,
   };
 
   const initialStats = {
