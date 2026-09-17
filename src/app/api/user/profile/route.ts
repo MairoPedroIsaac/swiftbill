@@ -4,6 +4,21 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
+
+const profileUpdateSchema = z.object({
+  name: z.string().optional(),
+  image: z.string().nullable().optional(),
+  removeImage: z.boolean().optional(),
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(8, "Password must be at least 8 characters").optional(),
+  businessName: z.string().optional(),
+  businessAddress: z.string().nullable().optional(),
+  businessPhone: z.string().nullable().optional(),
+  businessEmail: z.union([z.literal(""), z.string().email()]).nullable().optional(),
+  defaultCurrency: z.string().optional(),
+  invoicePrefix: z.string().optional(),
+});
 
 export async function GET() {
   try {
@@ -43,6 +58,16 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const body = await req.json();
+    const parsed = profileUpdateSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid profile data", details: parsed.error.format() },
+        { status: 400 }
+      );
+    }
+
     const {
       name,
       image,
@@ -55,7 +80,7 @@ export async function PUT(req: NextRequest) {
       businessEmail,
       defaultCurrency,
       invoicePrefix,
-    } = await req.json();
+    } = parsed.data;
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },

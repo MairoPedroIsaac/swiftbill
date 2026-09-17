@@ -11,45 +11,60 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
-  // Fetch full user and business profile from database
   const dbUser = await prisma.user.findUnique({
     where: { email: session.user.email },
-    include: {
-      businessProfile: {
-        include: {
-          invoices: {
-            include: {
-              lineItems: true,
-              customer: true,
-            },
-            orderBy: { createdAt: "desc" },
-          },
-        },
-      },
-    },
+    select: {
+      id: true, name: true, email: true, image: true,
+      businessProfile: { select: { id: true } }
+    }
   });
 
-  const invoices = dbUser?.businessProfile?.invoices || [];
+  const businessProfileId = dbUser?.businessProfile?.id;
+  const limit = 10;
 
-  let totalInvoices = invoices.length;
+  let invoices: any[] = [];
+  let totalCount = 0;
   let paidAmount = 0;
   let pendingDrafts = 0;
   let totalDraftAmount = 0;
 
-  invoices.forEach((inv) => {
-    const itemsTotal = inv.lineItems.reduce(
-      (sum, item) => sum + item.quantity * item.rate,
-      0
-    );
-    const invoiceTotal = itemsTotal * (1 + (inv.taxRate || 0) / 100);
+  if (businessProfileId) {
+    [invoices, totalCount] = await Promise.all([
+      prisma.invoice.findMany({
+        where: { businessProfileId },
+        include: { lineItems: true, customer: true },
+        orderBy: { createdAt: "desc" },
+        skip: 0,
+        take: limit,
+      }),
+      prisma.invoice.count({ where: { businessProfileId } })
+    ]);
 
-    if (inv.status === "SENT") {
-      paidAmount += invoiceTotal;
-    } else {
-      pendingDrafts += 1;
-      totalDraftAmount += invoiceTotal;
-    }
-  });
+    const allInvoicesForStats = await prisma.invoice.findMany({
+      where: { businessProfileId },
+      select: {
+        status: true,
+        taxRate: true,
+        lineItems: { select: { quantity: true, rate: true } },
+      },
+    });
+
+    allInvoicesForStats.forEach((inv) => {
+      const itemsTotal = inv.lineItems.reduce(
+        (sum, item) => sum + item.quantity * item.rate,
+        0
+      );
+      const invoiceTotal = itemsTotal * (1 + (inv.taxRate || 0) / 100);
+
+      if (inv.status === "PAID" || inv.status === "SENT") {
+        paidAmount += invoiceTotal;
+      }
+      if (inv.status === "DRAFT") {
+        pendingDrafts += 1;
+        totalDraftAmount += invoiceTotal;
+      }
+    });
+  }
 
   const user = {
     id: dbUser?.id || session.user.id,
@@ -60,10 +75,17 @@ export default async function DashboardPage() {
   };
 
   const initialStats = {
-    totalInvoices,
+    totalInvoices: totalCount,
     paidAmount,
     pendingDrafts,
     totalDraftAmount,
+  };
+
+  const initialPagination = {
+    total: totalCount,
+    page: 1,
+    limit,
+    totalPages: Math.ceil(totalCount / limit) || 1,
   };
 
   const initialInvoices = invoices.map((inv) => ({
@@ -81,6 +103,6 @@ export default async function DashboardPage() {
       user={user}
       initialStats={initialStats}
       initialInvoices={initialInvoices}
+      initialPagination={initialPagination}
     />
   );
-}

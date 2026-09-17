@@ -91,7 +91,7 @@ export default function InvoiceGenerator({ onInvoiceSaved, initialBusinessInfo, 
       if (savedDraft) {
         const parsed = JSON.parse(savedDraft);
         if (parsed && typeof parsed === 'object' && Array.isArray(parsed.items) && parsed.items.length > 0) {
-          if (!parsed.senderName && initialBusinessInfo?.name) {
+          if ((!parsed.senderName || parsed.senderName === 'My Business') && initialBusinessInfo?.name) {
             parsed.senderName = initialBusinessInfo.name;
           }
           if (!parsed.senderAddress && initialBusinessInfo?.address) {
@@ -106,6 +106,17 @@ export default function InvoiceGenerator({ onInvoiceSaved, initialBusinessInfo, 
     }
     setIsHydrated(true);
   }, [editingInvoice]);
+
+  // Sync draft with global business settings if they change
+  useEffect(() => {
+    if (!editingInvoice && initialBusinessInfo) {
+      setState(prev => ({
+        ...prev,
+        senderName: initialBusinessInfo.name || prev.senderName,
+        senderAddress: initialBusinessInfo.address || prev.senderAddress,
+      }));
+    }
+  }, [initialBusinessInfo?.name, initialBusinessInfo?.address, editingInvoice]);
 
   // 2. Autosave state changes to localStorage (only if not editing an existing saved invoice)
   useEffect(() => {

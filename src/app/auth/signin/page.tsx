@@ -4,13 +4,14 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { Lock, Mail, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import styles from "../Auth.module.css";
 
 export default function SignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -102,6 +103,7 @@ export default function SignInPage() {
               onChange={(e) => setEmail(e.target.value)}
               className={styles.input}
               placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
         </div>
@@ -111,13 +113,23 @@ export default function SignInPage() {
           <div className={styles.inputWrapper}>
             <Lock size={18} className={styles.inputIcon} />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={styles.input}
               placeholder="••••••••"
+              style={{ paddingRight: "40px" }}
+              autoComplete="current-password"
             />
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)}
+              className={styles.eyeIconBtn}
+              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
         </div>
 

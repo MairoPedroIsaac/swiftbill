@@ -4,21 +4,32 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { Lock, Mail, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import styles from "../Auth.module.css";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    
     setIsLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const res = await fetch("/api/auth/register", {
@@ -46,13 +57,16 @@ export default function SignUpPage() {
 
       if (result?.error) {
         setError("Failed to auto-login. Please sign in manually.");
+        setIsLoading(false);
       } else {
-        router.push("/dashboard");
-        router.refresh();
+        setSuccess("Registration successful! Redirecting to dashboard...");
+        setTimeout(() => {
+          router.push("/dashboard");
+          router.refresh();
+        }, 1500);
       }
     } catch (err) {
       setError("An unexpected error occurred");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -119,6 +133,7 @@ export default function SignUpPage() {
               onChange={(e) => setEmail(e.target.value)}
               className={styles.input}
               placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
         </div>
@@ -128,18 +143,64 @@ export default function SignUpPage() {
           <div className={styles.inputWrapper}>
             <Lock size={18} className={styles.inputIcon} />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={styles.input}
               placeholder="•••••••• (min 8 chars)"
+              style={{ paddingRight: "40px" }}
             />
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)}
+              className={styles.eyeIconBtn}
+              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Confirm Password</label>
+          <div className={styles.inputWrapper}>
+            <Lock size={18} className={styles.inputIcon} />
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              required
+              minLength={8}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={styles.input}
+              placeholder="••••••••"
+              style={{ paddingRight: "40px" }}
+              autoComplete="new-password"
+            />
+            <button 
+              type="button" 
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className={styles.eyeIconBtn}
+              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
         </div>
 
         {error && <div className={styles.error}>{error}</div>}
+        
+        {success && (
+          <div style={{ padding: "0.75rem", borderRadius: "8px", background: "#ecfdf5", color: "#059669", fontSize: "0.875rem", border: "1px solid #a7f3d0", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Eye size={18} style={{ display: 'none' }} /> {/* Just to satisfy lucide icon import if needed, or use a custom check circle */}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            {success}
+          </div>
+        )}
 
         <button
           type="submit"

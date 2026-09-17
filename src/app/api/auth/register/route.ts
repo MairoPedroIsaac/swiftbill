@@ -62,10 +62,10 @@ export async function POST(req: NextRequest) {
       { message: "User registered successfully", userId: user.id },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Registration error:", error);
     return NextResponse.json(
-      { error: "An unexpected error occurred during registration" },
+      { error: "An unexpected error occurred during registration: " + (error.message || String(error)) },
       { status: 500 }
     );
   }

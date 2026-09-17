@@ -14,7 +14,29 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SwiftBill | Professional Invoicing",
-  description: "Manage clients, track items, and create professional invoices instantly.",
+  description: "Manage clients, track items, and create professional PDF invoices instantly. The ultimate invoicing platform for freelancers and small businesses.",
+  openGraph: {
+    title: "SwiftBill | Professional Invoicing",
+    description: "Manage clients, track items, and create professional PDF invoices instantly. The ultimate invoicing platform for freelancers and small businesses.",
+    url: "https://swiftbill-app.vercel.app", // Replace with your actual Vercel URL
+    siteName: "SwiftBill",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "SwiftBill Dashboard Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SwiftBill | Professional Invoicing",
+    description: "Manage clients, track items, and create professional PDF invoices instantly.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({

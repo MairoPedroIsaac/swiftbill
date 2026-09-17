@@ -2,8 +2,38 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
-export async function GET() {
+const lineItemSchema = z.object({
+  id: z.string().optional(),
+  description: z.string().optional().default("Service / Product"),
+  quantity: z.coerce.number({ invalid_type_error: "Quantity must be a number" }).int("Quantity must be an integer").positive("Quantity must be greater than 0"),
+  rate: z.coerce.number({ invalid_type_error: "Rate must be a number" }).nonnegative("Rate cannot be negative"),
+});
+
+const invoiceSchema = z.object({
+  id: z.string().optional(),
+  customerId: z.string().optional(),
+  senderName: z.string().optional(),
+  senderAddress: z.string().optional(),
+  clientName: z.string().optional(),
+  clientAddress: z.string().optional(),
+  date: z.any().optional(),
+  dueDate: z.any().optional().nullable(),
+  currency: z.string().optional().default("USD"),
+  taxRate: z.union([z.string(), z.number()]).transform(v => parseFloat(String(v)) || 0).optional(),
+  notes: z.string().optional().nullable(),
+  terms: z.string().optional().nullable(),
+  template: z.string().optional().default("minimal"),
+  items: z.array(lineItemSchema).optional().default([]),
+});
+
+const patchSchema = z.object({
+  invoiceId: z.string().min(1, "Invoice ID is required"),
+  status: z.enum(["DRAFT", "SENT", "PAID"]),
+});
+
+export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -11,21 +41,14 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const skip = (page - 1) * limit;
+
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: {
-        businessProfile: {
-          include: {
-            invoices: {
-              include: {
-                lineItems: true,
-                customer: true,
-              },
-              orderBy: { createdAt: "desc" },
-            },
-          },
-        },
-      },
+      select: { businessProfile: { select: { id: true } } },
     });
 
     if (!user || !user.businessProfile) {
@@ -37,17 +60,42 @@ export async function GET() {
           totalDraftAmount: 0,
         },
         invoices: [],
+        pagination: { total: 0, page, limit, totalPages: 0 }
       });
     }
 
-    const invoices = user.businessProfile.invoices || [];
+    const businessProfileId = user.businessProfile.id;
 
-    let totalInvoices = invoices.length;
+    // 1. Fetch Paginated Invoices
+    const [invoices, totalCount] = await Promise.all([
+      prisma.invoice.findMany({
+        where: { businessProfileId },
+        include: {
+          lineItems: true,
+          customer: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.invoice.count({ where: { businessProfileId } })
+    ]);
+
+    // 2. Fetch Lightweight Data for Stats
+    const allInvoicesForStats = await prisma.invoice.findMany({
+      where: { businessProfileId },
+      select: {
+        status: true,
+        taxRate: true,
+        lineItems: { select: { quantity: true, rate: true } },
+      },
+    });
+
     let paidAmount = 0;
     let pendingDrafts = 0;
     let totalDraftAmount = 0;
 
-    invoices.forEach((inv) => {
+    allInvoicesForStats.forEach((inv) => {
       const itemsTotal = inv.lineItems.reduce(
         (sum, item) => sum + item.quantity * item.rate,
         0
@@ -65,12 +113,18 @@ export async function GET() {
 
     return NextResponse.json({
       stats: {
-        totalInvoices,
+        totalInvoices: totalCount,
         paidAmount,
         pendingDrafts,
         totalDraftAmount,
       },
       invoices,
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
+      }
     });
   } catch (error) {
     console.error("Fetch invoices error:", error);
@@ -90,7 +144,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    const parsed = invoiceSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid data", details: parsed.error.format() }, { status: 400 });
+    }
+
     const {
+      customerId,
       senderName,
       senderAddress,
       clientName,
@@ -103,7 +164,7 @@ export async function POST(req: NextRequest) {
       terms,
       template,
       items,
-    } = body;
+    } = parsed.data;
 
     // Helper functions for bulletproof date parsing
     const safeDate = (d: any) => {
@@ -158,6 +219,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Validate customerId if provided
+    if (customerId) {
+      const existingCustomer = await prisma.customer.findFirst({
+        where: { id: customerId, businessProfileId: businessProfile.id },
+      });
+      if (!existingCustomer) {
+        return NextResponse.json({ error: "Invalid customerId: Customer does not exist or does not belong to your business" }, { status: 400 });
+      }
+    }
+
     // Use transaction to atomically increment lastInvoiceNumber and create invoice
     const invoice = await prisma.$transaction(async (tx) => {
       // 1. Atomically increment lastInvoiceNumber
@@ -176,29 +247,40 @@ export async function POST(req: NextRequest) {
       const sequenceNum = String(updatedProfile.lastInvoiceNumber).padStart(3, "0");
       const generatedInvoiceNumber = `${prefix}${sequenceNum}`;
 
-      // 2. Create or find customer inside transaction
-      const customerNameInput = (clientName || "Valued Client").trim();
-      let customer = await tx.customer.findFirst({
-        where: {
-          businessProfileId: businessProfile.id,
-          name: {
-            equals: customerNameInput,
-            mode: 'insensitive',
-          },
-        },
-      });
+      // 2. Determine final Customer ID
+      let finalCustomerId = customerId;
 
-      if (!customer) {
-        customer = await tx.customer.create({
-          data: {
+      if (!finalCustomerId) {
+        const customerNameInput = (clientName || "Valued Client").trim();
+        let customer = await tx.customer.findFirst({
+          where: {
             businessProfileId: businessProfile.id,
-            name: customerNameInput,
-            address: clientAddress || null,
+            name: {
+              equals: customerNameInput,
+              mode: 'insensitive',
+            },
           },
         });
-      } else if (clientAddress && customer.address !== clientAddress) {
-        customer = await tx.customer.update({
-          where: { id: customer.id },
+
+        if (!customer) {
+          customer = await tx.customer.create({
+            data: {
+              businessProfileId: businessProfile.id,
+              name: customerNameInput,
+              address: clientAddress || null,
+            },
+          });
+        } else if (clientAddress && customer.address !== clientAddress) {
+          customer = await tx.customer.update({
+            where: { id: customer.id },
+            data: { address: clientAddress },
+          });
+        }
+        finalCustomerId = customer.id;
+      } else if (clientAddress) {
+        // If customerId is provided but address is also sent, optionally update it
+        await tx.customer.update({
+          where: { id: finalCustomerId },
           data: { address: clientAddress },
         });
       }
@@ -239,7 +321,7 @@ export async function POST(req: NextRequest) {
       return tx.invoice.create({
         data: {
           businessProfileId: businessProfile.id,
-          customerId: customer.id,
+          customerId: finalCustomerId,
           invoiceNumber: generatedInvoiceNumber,
           date: safeDate(date),
           dueDate: safeDueDate(dueDate),
@@ -285,18 +367,17 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { invoiceId, status } = await req.json();
-
-    if (!invoiceId || !status) {
+    const body = await req.json();
+    const parsed = patchSchema.safeParse(body);
+    
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invoice ID and status are required" },
+        { error: "Invalid status or invoice ID", details: parsed.error.format() },
         { status: 400 }
       );
     }
-
-    if (!["DRAFT", "SENT", "PAID"].includes(status)) {
-      return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
-    }
+    
+    const { invoiceId, status } = parsed.data;
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -343,6 +424,12 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
+    const parsed = invoiceSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid data", details: parsed.error.format() }, { status: 400 });
+    }
+
     const {
       id,
       clientName,
@@ -355,7 +442,7 @@ export async function PUT(req: NextRequest) {
       terms,
       template,
       items,
-    } = body;
+    } = parsed.data;
 
     if (!id) {
       return NextResponse.json({ error: "Invoice ID is required" }, { status: 400 });

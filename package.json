@@ -23,7 +23,8 @@
     "next-auth": "^4.24.15",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "uuid": "^14.0.2"
+    "uuid": "^14.0.2",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

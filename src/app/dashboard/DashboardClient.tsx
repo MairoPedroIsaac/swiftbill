@@ -23,7 +23,8 @@ import {
   Phone,
   MapPin,
   Globe,
-  CheckCircle
+  CheckCircle,
+  Save
 } from "lucide-react";
 import styles from "./Dashboard.module.css";
 import InvoiceGenerator from "@/components/InvoiceGenerator";
@@ -63,19 +64,27 @@ interface DashboardClientProps {
   };
   initialStats?: DashboardStats;
   initialInvoices?: InvoiceItem[];
+  initialPagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export default function DashboardClient({
   user,
   initialStats,
   initialInvoices,
+  initialPagination,
 }: DashboardClientProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "invoices" | "builder" | "account" | "settings">("overview");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<any>(null);
   
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(initialPagination?.page || 1);
+  const [totalPages, setTotalPages] = useState(initialPagination?.totalPages || 1);
+  const itemsPerPage = initialPagination?.limit || 10;
 
   // Live Real-Time Dashboard Stats & Invoices
   const [stats, setStats] = useState<DashboardStats>(
@@ -105,20 +114,27 @@ export default function DashboardClient({
   const [invoicePrefix, setInvoicePrefix] = useState(user.businessProfile?.invoicePrefix || "INV-");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [passwordSuccessMsg, setPasswordSuccessMsg] = useState("");
+  const [passwordErrorMsg, setPasswordErrorMsg] = useState("");
 
   const displayName = name || user.email?.split("@")[0] || "User";
   const avatarChar = displayName.charAt(0).toUpperCase();
 
   // Refresh live statistics from API
-  const refreshInvoicesAndStats = async () => {
+  const refreshInvoicesAndStats = async (page = currentPage) => {
     try {
-      const res = await fetch("/api/invoices", { cache: "no-store" });
+      const res = await fetch(`/api/invoices?page=${page}&limit=${itemsPerPage}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       if (data.stats) {
         setStats(data.stats);
+      }
+      if (data.pagination) {
+        setTotalPages(data.pagination.totalPages || 1);
+        setCurrentPage(data.pagination.page);
       }
       if (data.invoices) {
         setRawInvoices(data.invoices);
@@ -139,6 +155,12 @@ export default function DashboardClient({
       console.error("Failed to refresh stats", err);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === "overview" || activeTab === "invoices") {
+      refreshInvoicesAndStats(currentPage);
+    }
+  }, [currentPage]);
 
   const handleSelectTab = (tab: "overview" | "invoices" | "builder" | "account" | "settings") => {
     setActiveTab(tab);
@@ -257,22 +279,11 @@ export default function DashboardClient({
     }
   };
 
-  // Save Account Settings
-  const handleSaveAccount = async (e: React.FormEvent) => {
+  // Save Account Profile Settings
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
-
-    if (newPassword && newPassword !== confirmPassword) {
-      setErrorMsg("New passwords do not match");
-      return;
-    }
-
-    if (newPassword && newPassword.length < 8) {
-      setErrorMsg("Password must be at least 8 characters long");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -282,24 +293,71 @@ export default function DashboardClient({
         body: JSON.stringify({
           name,
           image: avatar,
-          currentPassword: currentPassword || undefined,
-          newPassword: newPassword || undefined,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update profile");
 
-      setSuccessMsg("Account profile and security updated!");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      setSuccessMsg("Account profile updated successfully!");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       setErrorMsg(err.message || "An error occurred");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Update Password
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordErrorMsg("");
+    setPasswordSuccessMsg("");
+
+    if (!currentPassword) {
+      setPasswordErrorMsg("Current password is required to set a new one");
+      return;
+    }
+
+    if (!newPassword) {
+      setPasswordErrorMsg("New password is required");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordErrorMsg("New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordErrorMsg("Password must be at least 8 characters long");
+      return;
+    }
+
+    setIsSubmittingPassword(true);
+
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update password");
+
+      setPasswordSuccessMsg("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      setPasswordErrorMsg(err.message || "An error occurred");
+    } finally {
+      setIsSubmittingPassword(false);
     }
   };
 
@@ -621,7 +679,7 @@ export default function DashboardClient({
                   </tr>
                 </thead>
                 <tbody>
-                  {invoices.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((inv) => {
+                  {invoices.map((inv) => {
                     const style = getStatusBadgeStyle(inv.status);
                     return (
                       <tr key={inv.id} style={{ borderBottom: "1px solid var(--border)", fontSize: "0.9rem" }}>
@@ -663,7 +721,7 @@ export default function DashboardClient({
               </table>
               
               {/* Pagination Controls */}
-              {invoices.length > itemsPerPage && (
+              {totalPages > 1 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderTop: '1px solid var(--border)' }}>
                   <button 
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -673,12 +731,12 @@ export default function DashboardClient({
                     Previous
                   </button>
                   <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                    Page {currentPage} of {Math.ceil(invoices.length / itemsPerPage)}
+                    Page {currentPage} of {totalPages}
                   </span>
                   <button 
-                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(invoices.length / itemsPerPage), p + 1))}
-                    disabled={currentPage === Math.ceil(invoices.length / itemsPerPage)}
-                    style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid var(--border)', background: currentPage === Math.ceil(invoices.length / itemsPerPage) ? '#f1f5f9' : 'white', cursor: currentPage === Math.ceil(invoices.length / itemsPerPage) ? 'not-allowed' : 'pointer' }}
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid var(--border)', background: currentPage === totalPages ? '#f1f5f9' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
                   >
                     Next
                   </button>
@@ -722,7 +780,7 @@ export default function DashboardClient({
             {successMsg && <div className={styles.alertSuccess}>{successMsg}</div>}
             {errorMsg && <div className={styles.alertError}>{errorMsg}</div>}
 
-            <form onSubmit={handleSaveAccount}>
+            <form onSubmit={handleSaveProfile} style={{ marginBottom: "2rem" }}>
               <div className={styles.avatarSection}>
                 {avatar ? (
                   <img src={avatar} alt="Profile Avatar" className={styles.largeAvatar} />
@@ -764,8 +822,7 @@ export default function DashboardClient({
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
-                  required
+                  placeholder="Enter your name (Optional)"
                 />
               </div>
 
@@ -779,12 +836,27 @@ export default function DashboardClient({
                 />
               </div>
 
-              <div className={styles.divider} />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={styles.btnNewInvoiceSidebar}
+                style={{ width: "fit-content", marginTop: "1rem", padding: "0.625rem 1.5rem" }}
+              >
+                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                Save Profile
+              </button>
+            </form>
 
+            <div className={styles.divider} />
+
+            <form onSubmit={handleUpdatePassword}>
               <h3 className={styles.sectionTitle} style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>
                 <Lock size={18} style={{ display: "inline", marginRight: "0.5rem", verticalAlign: "text-bottom" }} />
                 Reset / Change Password
               </h3>
+
+              {passwordSuccessMsg && <div className={styles.alertSuccess} style={{ marginBottom: "1rem" }}>{passwordSuccessMsg}</div>}
+              {passwordErrorMsg && <div className={styles.alertError} style={{ marginBottom: "1rem" }}>{passwordErrorMsg}</div>}
 
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Current Password</label>
@@ -819,12 +891,12 @@ export default function DashboardClient({
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmittingPassword}
                 className={styles.btnNewInvoiceSidebar}
                 style={{ width: "fit-content", marginTop: "1rem", padding: "0.625rem 1.5rem" }}
               >
-                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
-                Save Account Changes
+                {isSubmittingPassword ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
+                Update Password
               </button>
             </form>
           </div>
