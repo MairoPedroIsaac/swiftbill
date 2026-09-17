@@ -421,6 +421,10 @@
 }
 
 @media (max-width: 900px) {
+  .dashboardLayout {
+    flex-direction: column;
+  }
+
   .sidebar {
     transform: translateX(-100%);
   }

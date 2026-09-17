@@ -61,6 +61,7 @@ interface DashboardClientProps {
       invoicePrefix?: string | null;
       lastInvoiceNumber?: number | null;
     } | null;
+    createdAt?: string | Date;
   };
   initialStats?: DashboardStats;
   initialInvoices?: InvoiceItem[];
@@ -512,10 +513,14 @@ export default function DashboardClient({
         {/* TAB 1: OVERVIEW */}
         {activeTab === "overview" && (
           <>
-            <h1 className={styles.pageTitle}>Dashboard Overview</h1>
-            <p className={styles.pageSubtitle}>
-              Welcome back, {displayName}! Here is your real-time invoicing summary.
-            </p>
+            <div className={styles.pageHeader}>
+              <h1 className={styles.pageTitle}>Dashboard Overview</h1>
+              <p className={styles.pageSubtitle}>
+                {user.createdAt && Date.now() - new Date(user.createdAt).getTime() < 1000 * 60 * 60 
+                  ? `Welcome, ${displayName}! Let's create your first invoice.` 
+                  : `Welcome back, ${displayName}! Here is your real-time invoicing summary.`}
+              </p>
+            </div>
 
             {/* Real-time Metric Cards */}
             <div className={styles.statsGrid}>

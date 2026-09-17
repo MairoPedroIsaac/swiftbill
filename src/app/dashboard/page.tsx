@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   const dbUser = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: {
-      id: true, name: true, email: true, image: true,
+      id: true, name: true, email: true, image: true, createdAt: true,
       businessProfile: { select: { id: true } }
     }
   });
@@ -72,6 +72,7 @@ export default async function DashboardPage() {
     email: dbUser?.email || session.user.email,
     image: dbUser?.image || session.user.image,
     businessProfile: dbUser?.businessProfile || null,
+    createdAt: dbUser?.createdAt,
   };
 
   const initialStats = {
