@@ -7,8 +7,8 @@ import { z } from "zod";
 const lineItemSchema = z.object({
   id: z.string().optional(),
   description: z.string().optional().default("Service / Product"),
-  quantity: z.coerce.number({ invalid_type_error: "Quantity must be a number" }).int("Quantity must be an integer").positive("Quantity must be greater than 0"),
-  rate: z.coerce.number({ invalid_type_error: "Rate must be a number" }).nonnegative("Rate cannot be negative"),
+  quantity: z.coerce.number({ message: "Quantity must be a number" }).int("Quantity must be an integer").positive("Quantity must be greater than 0"),
+  rate: z.coerce.number({ message: "Rate must be a number" }).nonnegative("Rate cannot be negative"),
 });
 
 const invoiceSchema = z.object({
