@@ -289,7 +289,7 @@ export async function POST(req: NextRequest) {
       for (const itm of items || []) {
         const itemDesc = (itm.description || "").trim();
         if (itemDesc !== '') {
-          const parsedRate = parseFloat(itm.rate) || 0;
+          const parsedRate = Number(itm.rate) || 0;
           const existingItem = await tx.item.findFirst({
             where: { 
               businessProfileId: businessProfile.id, 
@@ -328,14 +328,14 @@ export async function POST(req: NextRequest) {
           status: "DRAFT",
           template: template || "minimal",
           currency: currency || "USD",
-          taxRate: parseFloat(taxRate) || 0,
+          taxRate: Number(taxRate) || 0,
           notes: notes || null,
           terms: terms || null,
           lineItems: {
             create: (items || []).map((item: any) => ({
               description: item.description || "Service / Product",
-              quantity: parseInt(item.quantity) || 1,
-              rate: parseFloat(item.rate) || 0,
+              quantity: Number(item.quantity) || 1,
+              rate: Number(item.rate) || 0,
             })),
           },
         },
@@ -526,7 +526,7 @@ export async function PUT(req: NextRequest) {
       for (const itm of items || []) {
         const itemDesc = (itm.description || "").trim();
         if (itemDesc !== '') {
-          const parsedRate = parseFloat(itm.rate) || 0;
+          const parsedRate = Number(itm.rate) || 0;
           const existingItem = await tx.item.findFirst({
             where: { 
               businessProfileId: businessProfile.id, 
@@ -568,14 +568,14 @@ export async function PUT(req: NextRequest) {
           dueDate: safeDueDate(dueDate),
           template: template || "minimal",
           currency: currency || "USD",
-          taxRate: parseFloat(taxRate) || 0,
+          taxRate: Number(taxRate) || 0,
           notes: notes || null,
           terms: terms || null,
           lineItems: {
             create: (items || []).map((item: any) => ({
               description: item.description || "Service / Product",
-              quantity: parseInt(item.quantity) || 1,
-              rate: parseFloat(item.rate) || 0,
+              quantity: Number(item.quantity) || 1,
+              rate: Number(item.rate) || 0,
             })),
           },
         },
