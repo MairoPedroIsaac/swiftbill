@@ -17,7 +17,6 @@ It removes the unnecessary complexity of traditional accounting software and pro
 
 ## 📸 Screenshots
 
-```md
 ![SwiftBill Landing Page](./screenshots/landing_page.png)
 
 ![SwiftBill Dashboard](./screenshots/dashboard.png)
@@ -25,7 +24,6 @@ It removes the unnecessary complexity of traditional accounting software and pro
 ![SwiftBill Invoice Builder Part 1](./screenshots/invoice_builder1.png)
 
 ![SwiftBill Invoice Builder Part 2](./screenshots/invoice_builder2.png)
-```
 
 ---
 
