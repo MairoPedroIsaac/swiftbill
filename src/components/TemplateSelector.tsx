@@ -166,7 +166,7 @@ export default function TemplateSelector({ state, onInvoiceSaved }: Props) {
           ) : (
             <>
               <Download size={18} />
-              Download PDF & Save
+              Download PDF
             </>
           )}
         </button>
