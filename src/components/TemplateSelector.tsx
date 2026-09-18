@@ -5,6 +5,7 @@ import { Download, Save } from 'lucide-react';
 import { InvoiceState } from '@/types/invoice';
 import { generatePDF } from '@/utils/pdfGenerator';
 import styles from './TemplateSelector.module.css';
+import toast from 'react-hot-toast';
 
 interface Props {
   state: InvoiceState;
@@ -21,6 +22,7 @@ export default function TemplateSelector({ state, onInvoiceSaved }: Props) {
     try {
       // 1. Generate & download the PDF invoice
       await generatePDF(state, template);
+      toast.success('PDF Downloaded Successfully!');
 
       // 2. Save invoice to database (if authenticated)
       try {
@@ -36,14 +38,16 @@ export default function TemplateSelector({ state, onInvoiceSaved }: Props) {
         } else if (!res.ok) {
           const errText = await res.text();
           console.error('Server error on download&save:', res.status, errText);
-          alert(`Failed to save invoice. Status: ${res.status}. Error: ${errText}`);
+          if (res.status !== 401) {
+            toast.error(`Failed to save invoice. Status: ${res.status}. Error: ${errText}`);
+          }
         }
       } catch (saveErr) {
         console.log('Guest invoice generated (not saved to database)');
       }
     } catch (error) {
       console.error('Failed to generate PDF', error);
-      alert('There was an error generating the PDF.');
+      toast.error('There was an error generating the PDF.');
     } finally {
       setIsDownloading(false);
     }
@@ -61,14 +65,19 @@ export default function TemplateSelector({ state, onInvoiceSaved }: Props) {
       if (res.ok && onInvoiceSaved) {
         const data = await res.json();
         onInvoiceSaved(data, false);
+        toast.success('Invoice saved successfully!');
       } else if (!res.ok) {
         const errText = await res.text();
         console.error('Server returned error:', res.status, errText);
-        alert(`Failed to save invoice to database. Status: ${res.status}. Error: ${errText}`);
+        if (res.status === 401) {
+          toast.error('Sign in to save invoices online.');
+        } else {
+          toast.error(`Failed to save invoice to database. Status: ${res.status}. Error: ${errText}`);
+        }
       }
     } catch (saveErr) {
       console.error('Save error', saveErr);
-      alert('An error occurred while saving.');
+      toast.error('An error occurred while saving.');
     } finally {
       setIsSaving(false);
     }
