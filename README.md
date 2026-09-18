@@ -10,29 +10,21 @@ It removes the unnecessary complexity of traditional accounting software and pro
 
 ## 🔗 Live Demo
 
-**[View Live Application](https://your-vercel-deployment-url-here.vercel.app)**
+**[View Live Application](https://swiftbill-swart.vercel.app/)**
 
 
 ---
 
 ## 📸 Screenshots
 
-Add screenshots of the following areas of the application:
-
-* Landing Page
-* Invoice Builder
-* Dashboard
-* Invoice Details
-* PDF Templates
-
-Example:
-
 ```md
-![SwiftBill Landing Page](./screenshots/landing-page.png)
+![SwiftBill Landing Page](./screenshots/landing_page.png)
 
 ![SwiftBill Dashboard](./screenshots/dashboard.png)
 
-![SwiftBill Invoice Builder](./screenshots/invoice-builder.png)
+![SwiftBill Invoice Builder Part 1](./screenshots/invoice_builder1.png)
+
+![SwiftBill Invoice Builder Part 2](./screenshots/invoice_builder2.png)
 ```
 
 ---
@@ -179,7 +171,7 @@ There is currently no admin/employee role-based access control (RBAC).
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/swiftbill.git
+git clone https://github.com/MairoPedroIsaac/swiftbill.git
 cd swiftbill
 ```
 
