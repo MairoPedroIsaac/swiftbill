@@ -17,19 +17,35 @@ It removes the unnecessary complexity of traditional accounting software and pro
 
 ## 📸 Screenshots
 
-![SwiftBill Landing Page](./screenshots/landing_page.png)
+### 💻 Desktop Views
+
+![SwiftBill Landing Page Desktop](./screenshots/landing_page.png)
 
 <br>
 
-![SwiftBill Dashboard](./screenshots/dashboard.png)
+![SwiftBill Dashboard Desktop](./screenshots/dashboard.png)
 
 <br>
 
-![SwiftBill Invoice Builder Part 1](./screenshots/invoice_builder1.png)
+![SwiftBill Invoice Builder Part 1 Desktop](./screenshots/invoice_builder1.png)
 
 <br>
 
-![SwiftBill Invoice Builder Part 2](./screenshots/invoice_builder2.png)
+![SwiftBill Invoice Builder Part 2 Desktop](./screenshots/invoice_builder2.png)
+
+<br>
+
+### 📱 Mobile Views
+
+![SwiftBill Landing Page Mobile](./screenshots/mobile_landing_page.jpeg)
+
+<br>
+
+![SwiftBill Dashboard Mobile](./screenshots/mobile_dashboard.jpeg)
+
+<br>
+
+![SwiftBill Invoice Builder Mobile](./screenshots/mobile_invoive_builder.jpeg)
 
 ---
 
