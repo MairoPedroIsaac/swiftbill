@@ -445,14 +445,15 @@ export default function DashboardClient({
               All Invoices
             </button>
 
-            {/* 3. Invoice Builder */}
-            <button
-              onClick={() => handleSelectTab("builder")}
-              className={`${styles.navItem} ${activeTab === "builder" ? styles.activeNavItem : ""}`}
-            >
-              <Plus size={18} />
-              Invoice Builder
-            </button>
+            {/* 3. Invoice Builder - Only show when active to indicate current view */}
+            {activeTab === "builder" && (
+              <button
+                className={`${styles.navItem} ${styles.activeNavItem}`}
+              >
+                <Plus size={18} />
+                Invoice Builder
+              </button>
+            )}
 
             {/* 4. Account & Security */}
             <button
@@ -463,7 +464,7 @@ export default function DashboardClient({
               Account & Security
             </button>
 
-            {/* 4. Settings */}
+            {/* 5. Settings */}
             <button
               onClick={() => handleSelectTab("settings")}
               className={`${styles.navItem} ${activeTab === "settings" ? styles.activeNavItem : ""}`}
@@ -472,14 +473,16 @@ export default function DashboardClient({
               Settings
             </button>
 
-            {/* 5. + New Invoice */}
-            <button
-              onClick={() => handleSelectTab("builder")}
-              className={styles.btnNewInvoiceSidebar}
-            >
-              <Plus size={18} />
-              New Invoice
-            </button>
+            {/* 6. + New Invoice - Hide when already in builder to avoid redundancy */}
+            {activeTab !== "builder" && (
+              <button
+                onClick={() => handleSelectTab("builder")}
+                className={styles.btnNewInvoiceSidebar}
+              >
+                <Plus size={18} />
+                New Invoice
+              </button>
+            )}
           </nav>
         </div>
 
