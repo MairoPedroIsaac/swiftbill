@@ -516,7 +516,7 @@ export default function DashboardClient({
             <div className={styles.pageHeader}>
               <h1 className={styles.pageTitle}>Dashboard Overview</h1>
               <p className={styles.pageSubtitle}>
-                {(!user.createdAt || Date.now() - new Date(user.createdAt).getTime() < 1000 * 60 * 60)
+                {stats.totalInvoices === 0
                   ? `Welcome, ${displayName}! Let's create your first invoice.` 
                   : `Welcome back, ${displayName}! Here is your real-time invoicing summary.`}
               </p>
@@ -552,7 +552,7 @@ export default function DashboardClient({
                 </div>
                 <div>
                   <div className={styles.statValue}>{stats.pendingDrafts}</div>
-                  <div className={styles.statLabel}>Pending / Drafts</div>
+                  <div className={styles.statLabel}>Draft Invoices</div>
                 </div>
               </div>
 

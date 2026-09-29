@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
       );
       const invoiceTotal = itemsTotal * (1 + (inv.taxRate || 0) / 100);
 
-      if (inv.status === "PAID" || inv.status === "SENT") {
+      if (inv.status === "PAID") {
         paidAmount += invoiceTotal;
       }
       if (inv.status === "DRAFT") {
