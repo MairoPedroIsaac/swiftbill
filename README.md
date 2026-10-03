@@ -40,7 +40,7 @@ It removes the unnecessary complexity of traditional accounting software and pro
 <p align="center">
   <img src="./screenshots/mobile_landing_page.jpeg" width="250" alt="SwiftBill Landing Page Mobile" />
   &nbsp;&nbsp;&nbsp;
-  <img src="./screenshots/mobile_dashboard.jpeg" width="250" alt="SwiftBill Dashboard Mobile" />
+  <img src="./screenshots/mobile-dashboard.jpeg" width="250" alt="SwiftBill Dashboard Mobile" />
   &nbsp;&nbsp;&nbsp;
   <img src="./screenshots/mobile_invoive_builder.jpeg" width="250" alt="SwiftBill Invoice Builder Mobile" />
 </p>
