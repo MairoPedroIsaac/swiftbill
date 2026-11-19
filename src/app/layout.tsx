@@ -13,26 +13,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://swiftbill-swart.vercel.app";
+const SITE_TITLE = "SwiftBill | Professional Invoicing";
+const SITE_DESCRIPTION =
+  "Manage clients, track items, and create professional PDF invoices in seconds. Invoicing for freelancers and small businesses.";
+// Bump the ?v= number whenever public/og.jpg changes so apps fetch the new image.
+const OG_IMAGE = `${SITE_URL}/og.jpg?v=3`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://swiftbill-swart.vercel.app"),
-  title: "SwiftBill | Professional Invoicing",
-  description: "Manage clients, track items, and create professional PDF invoices instantly. The ultimate invoicing platform for freelancers and small businesses.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
   applicationName: "SwiftBill",
-  // Preview image, favicon and app icons come from the files in this folder:
-  // opengraph-image.jpg, twitter-image.jpg, icon.png, apple-icon.png, favicon.ico
-  openGraph: {
-    title: "SwiftBill | Professional Invoicing",
-    description: "Manage clients, track items, and create professional PDF invoices instantly. The ultimate invoicing platform for freelancers and small businesses.",
-    url: "https://swiftbill-swart.vercel.app",
-    siteName: "SwiftBill",
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "SwiftBill | Professional Invoicing",
-    description: "Manage clients, track items, and create professional PDF invoices instantly.",
-  },
+  // Favicon and app icons come from favicon.ico, icon.png and apple-icon.png in this folder.
+  // Link preview tags (og:*, twitter:*) are written straight into <head> below.
 };
 
 export const viewport: Viewport = {
@@ -49,6 +43,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/*
+          Link preview tags for WhatsApp, Facebook, LinkedIn, X, Slack and others.
+          They are written here by hand so they are always in the HTML <head>,
+          on every page and for every app that reads them.
+        */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="SwiftBill" />
+        <meta property="og:url" content={SITE_URL} />
+        <meta property="og:title" content={SITE_TITLE} />
+        <meta property="og:description" content={SITE_DESCRIPTION} />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta property="og:image:secure_url" content={OG_IMAGE} />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="SwiftBill: professional invoices in seconds" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={SITE_TITLE} />
+        <meta name="twitter:description" content={SITE_DESCRIPTION} />
+        <meta name="twitter:image" content={OG_IMAGE} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <div className="mesh-bg"></div>
         {children}

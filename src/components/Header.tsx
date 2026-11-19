@@ -1,24 +1,39 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import styles from "./Header.module.css";
 
-export default async function Header() {
-  const session = await getServerSession(authOptions);
+// The session is checked in the browser so the homepage can be served as a
+// static page. That keeps it fast and makes sure link previews (WhatsApp,
+// LinkedIn, X) always find the og:image tags in the page <head>.
+export default function Header() {
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((session) => {
+        if (!cancelled && session?.user) setSignedIn(true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <header className={styles.header}>
       <div className={styles.logoContainer}>
         <Link href="/" className={styles.logoText}>
-          <div className={styles.logoIcon}>
-            S
-          </div>
+          <div className={styles.logoIcon}>S</div>
           SwiftBill
         </Link>
       </div>
 
       <nav className={styles.nav}>
-        {session ? (
+        {signedIn ? (
           <Link href="/dashboard" className={styles.btnPrimary}>
             Dashboard
           </Link>
