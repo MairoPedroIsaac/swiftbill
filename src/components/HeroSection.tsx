@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { ArrowDown } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowDown, Check } from 'lucide-react';
 import styles from './HeroSection.module.css';
 
 export default function HeroSection() {
@@ -15,18 +16,26 @@ export default function HeroSection() {
   return (
     <section className={styles.hero}>
       <div className={styles.container}>
-        <div className={`glass-panel ${styles.content}`}>
-          <h1 className={styles.title}>
-            Create Professional Invoices <br />
-            <span className={styles.highlight}>In Seconds.</span>
-          </h1>
-          <p className={styles.subtitle}>
-            Manage clients, track your items, and generate beautiful PDFs instantly. Save your invoices to your account and never lose track.
-          </p>
+        <h1 className={styles.title}>
+          Create professional invoices <span className={styles.highlight}>in seconds.</span>
+        </h1>
+        <p className={styles.subtitle}>
+          Save your clients and items once, then turn out clean PDF invoices whenever you need them.
+          Everything stays in your account, so nothing gets lost.
+        </p>
+        <div className={styles.actions}>
           <button className={styles.ctaButton} onClick={scrollToGenerator}>
-            Create Invoice <ArrowDown size={18} />
+            Create an invoice <ArrowDown size={18} />
           </button>
+          <Link href="/auth/signup" className={styles.secondaryButton}>
+            Create a free account
+          </Link>
         </div>
+        <ul className={styles.points}>
+          <li><Check size={16} /> No card needed</li>
+          <li><Check size={16} /> Three PDF templates</li>
+          <li><Check size={16} /> Works on your phone</li>
+        </ul>
       </div>
     </section>
   );

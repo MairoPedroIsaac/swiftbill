@@ -1,5 +1,6 @@
 .container {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8,8 +9,8 @@
 
 .card {
   width: 100%;
-  max-width: 28rem;
-  padding: 2rem;
+  max-width: 26rem;
+  padding: 2.25rem 2rem;
   border-radius: var(--radius);
 }
 
@@ -74,24 +75,27 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background-color: var(--card-bg);
+  min-height: 46px;
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-size: 0.95rem;
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   font-weight: 500;
-  margin-bottom: 2rem;
-  transition: all 0.2s;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-.btnSocial:hover {
-  background-color: var(--input-bg);
+.btnSocial:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background-color: #f8fafc;
 }
 
 .divider {
   display: flex;
   align-items: center;
-  margin: 2rem 0;
+  margin: 1.5rem 0;
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .divider::before,
@@ -139,11 +143,13 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
+  min-height: 46px;
   background-color: var(--primary);
   color: white;
   border: none;
-  border-radius: 0.5rem;
-  font-weight: 500;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
   margin-top: 1.5rem;
   transition: background-color 0.2s;
 }
@@ -158,7 +164,7 @@
 }
 
 .footer {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   text-align: center;
   font-size: 0.875rem;
   color: var(--text-muted);
@@ -182,4 +188,29 @@
   font-size: 0.875rem;
   margin-bottom: 1rem;
   border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.legal {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  .container {
+    align-items: flex-start;
+    padding: 1.5rem 1rem;
+  }
+
+  .card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
 }

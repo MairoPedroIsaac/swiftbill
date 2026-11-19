@@ -63,7 +63,7 @@
   color: white;
   border: none;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   font-weight: 600;
   display: flex;
@@ -84,11 +84,11 @@
 }
 
 .saveBtn {
-  background: white;
+  background: var(--surface);
   color: var(--primary);
   border: 1px solid var(--primary);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   font-weight: 600;
   display: flex;

@@ -7,7 +7,7 @@
 .header {
   display: flex;
   padding: 0.5rem 1rem;
-  background: rgba(0,0,0,0.02);
+  background: #f8fafc;
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.875rem;
@@ -97,7 +97,7 @@
 }
 
 .totalsWrapper {
-  width: 300px;
+  width: min(300px, 100%);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -150,4 +150,6 @@
   .colRate { width: calc(50% - 0.5rem); }
   .colAmount { width: auto; flex: 1; text-align: left; margin-top: 0.5rem; }
   .colAction { width: auto; margin-top: 0.5rem; }
+  .totalsContainer { margin-top: 1.5rem; padding-top: 1.5rem; }
+  .totalsWrapper { width: 100%; }
 }

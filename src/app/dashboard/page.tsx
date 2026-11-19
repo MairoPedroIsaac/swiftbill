@@ -15,7 +15,19 @@ export default async function DashboardPage() {
     where: { email: session.user.email },
     select: {
       id: true, name: true, email: true, image: true,
-      businessProfile: { select: { id: true, createdAt: true } }
+      businessProfile: {
+        select: {
+          id: true,
+          createdAt: true,
+          name: true,
+          address: true,
+          phone: true,
+          email: true,
+          defaultCurrency: true,
+          invoicePrefix: true,
+          lastInvoiceNumber: true,
+        },
+      },
     }
   });
 

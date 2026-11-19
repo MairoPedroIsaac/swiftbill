@@ -1,11 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import styles from "../Auth.module.css";
+
+// Friendly messages for the error codes NextAuth adds to the URL (?error=...)
+const AUTH_ERRORS: Record<string, string> = {
+  OAuthAccountNotLinked:
+    "This email already has a SwiftBill account with a password. Sign in with your email and password instead.",
+  Callback: "We couldn't finish signing you in. Please try again in a moment.",
+  OAuthCallback: "Google sign-in was cancelled or failed. Please try again.",
+  OAuthSignin: "We couldn't start Google sign-in. Please try again.",
+  AccessDenied: "Access was denied. Please try again with a different account.",
+  SessionRequired: "Please sign in to continue.",
+  Default: "Something went wrong while signing in. Please try again.",
+};
 
 export default function SignInPage() {
   const router = useRouter();
@@ -15,6 +27,13 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("error");
+    if (code && code !== "CredentialsSignin") {
+      setError(AUTH_ERRORS[code] || AUTH_ERRORS.Default);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +75,8 @@ export default function SignInPage() {
         <h1 className={styles.title}>Welcome back</h1>
         <p className={styles.subtitle}>Sign in to your SwiftBill account</p>
       </div>
+
+      {error && <div className={styles.error} role="alert">{error}</div>}
 
       <button
         onClick={handleGoogleSignIn}
@@ -133,7 +154,6 @@ export default function SignInPage() {
           </div>
         </div>
 
-        {error && <div className={styles.error}>{error}</div>}
 
         <button
           type="submit"
@@ -157,6 +177,11 @@ export default function SignInPage() {
           Sign up
         </Link>
       </div>
+      <p className={styles.legal}>
+        By continuing, you agree to our{" "}
+        <Link href="/terms" className={styles.link}>Terms of Service</Link> and{" "}
+        <Link href="/privacy" className={styles.link}>Privacy Policy</Link>.
+      </p>
     </>
   );
 }

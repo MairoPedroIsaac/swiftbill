@@ -224,6 +224,11 @@ export default function SignUpPage() {
           Sign in
         </Link>
       </div>
+      <p className={styles.legal}>
+        By continuing, you agree to our{" "}
+        <Link href="/terms" className={styles.link}>Terms of Service</Link> and{" "}
+        <Link href="/privacy" className={styles.link}>Privacy Policy</Link>.
+      </p>
     </>
   );
 }

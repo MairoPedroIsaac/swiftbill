@@ -73,6 +73,84 @@ interface DashboardClientProps {
   };
 }
 
+const STATUS_OPTIONS = ["DRAFT", "SENT", "PAID"] as const;
+
+function formatMoney(amount: number, currency?: string | null) {
+  const code = (currency || "USD").toUpperCase();
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: code,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${code} ${amount.toFixed(2)}`;
+  }
+}
+
+function formatDate(value: string) {
+  if (!value) return "";
+  const d = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function InvoiceList({
+  invoices,
+  onEdit,
+  onStatusChange,
+}: {
+  invoices: InvoiceItem[];
+  onEdit: (id: string) => void;
+  onStatusChange: (id: string, status: string) => void;
+}) {
+  return (
+    <div className={styles.invoiceList}>
+      <div className={styles.invoiceHead} aria-hidden="true">
+        <span>Invoice</span>
+        <span>Client</span>
+        <span>Date</span>
+        <span>Status</span>
+        <span className={styles.alignRight}>Amount</span>
+      </div>
+      <ul className={styles.invoiceRows}>
+        {invoices.map((inv) => (
+          <li key={inv.id} className={styles.invoiceRow}>
+            <button
+              type="button"
+              onClick={() => onEdit(inv.id)}
+              className={styles.invoiceNumber}
+              title="Open this invoice"
+            >
+              {inv.invoiceNumber}
+            </button>
+            <span className={styles.invoiceClient}>{inv.clientName}</span>
+            <span className={styles.invoiceDate}>{formatDate(inv.date)}</span>
+            <span className={styles.invoiceStatus}>
+              <select
+                value={inv.status}
+                onChange={(e) => onStatusChange(inv.id, e.target.value)}
+                className={`${styles.statusSelect} ${styles[`status${inv.status}`] || ""}`}
+                aria-label={`Status for ${inv.invoiceNumber}`}
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {s.charAt(0) + s.slice(1).toLowerCase()}
+                  </option>
+                ))}
+              </select>
+            </span>
+            <span className={`${styles.invoiceAmount} tabular`}>
+              {formatMoney(inv.amount, inv.currency)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function DashboardClient({
   user,
   initialStats,
@@ -222,17 +300,6 @@ export default function DashboardClient({
       }
     } catch (err) {
       console.error("Status update error", err);
-    }
-  };
-
-  const getStatusBadgeStyle = (status: string) => {
-    switch (status) {
-      case "PAID":
-        return { bg: "rgba(34, 197, 94, 0.15)", color: "#16a34a", border: "rgba(34, 197, 94, 0.3)" };
-      case "SENT":
-        return { bg: "rgba(59, 130, 246, 0.15)", color: "#2563eb", border: "rgba(59, 130, 246, 0.3)" };
-      default:
-        return { bg: "rgba(245, 158, 11, 0.15)", color: "#d97706", border: "rgba(245, 158, 11, 0.3)" };
     }
   };
 
@@ -386,7 +453,7 @@ export default function DashboardClient({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update business profile");
 
-      setSuccessMsg("Business settings updated! Invoice prefix updated while sequence counter continues seamlessly.");
+      setSuccessMsg("Business settings saved.");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       setErrorMsg(err.message || "An error occurred");
@@ -407,7 +474,8 @@ export default function DashboardClient({
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className={styles.mobileMenuBtn}
-          aria-label="Toggle Navigation Menu"
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileOpen}
         >
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -513,15 +581,16 @@ export default function DashboardClient({
 
       {/* MAIN CONTENT AREA */}
       <main className={styles.mainContent}>
+        <div className={styles.mainInner}>
         {/* TAB 1: OVERVIEW */}
         {activeTab === "overview" && (
           <>
             <div className={styles.pageHeader}>
-              <h1 className={styles.pageTitle}>Dashboard Overview</h1>
+              <h1 className={styles.pageTitle}>Overview</h1>
               <p className={styles.pageSubtitle}>
                 {stats.totalInvoices === 0
-                  ? `Welcome, ${displayName}! Let's create your first invoice.` 
-                  : `Welcome back, ${displayName}! Here is your real-time invoicing summary.`}
+                  ? `Welcome, ${displayName}. Create your first invoice to get started.`
+                  : `Welcome back, ${displayName}. Here is where your invoices stand.`}
               </p>
             </div>
 
@@ -529,45 +598,45 @@ export default function DashboardClient({
             <div className={styles.statsGrid}>
               <div className={`glass-panel ${styles.statCard}`}>
                 <div className={styles.statIcon}>
-                  <FileText size={24} />
+                  <FileText size={20} />
                 </div>
                 <div>
-                  <div className={styles.statValue}>{stats.totalInvoices}</div>
-                  <div className={styles.statLabel}>Total Invoices</div>
+                  <div className={`${styles.statValue} tabular`}>{stats.totalInvoices}</div>
+                  <div className={styles.statLabel}>Invoices</div>
                 </div>
               </div>
 
               <div className={`glass-panel ${styles.statCard}`}>
-                <div className={styles.statIcon} style={{ background: "rgba(34, 197, 94, 0.1)", color: "#22c55e" }}>
-                  <CheckCircle2 size={24} />
+                <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
+                  <CheckCircle2 size={20} />
                 </div>
                 <div>
-                  <div className={styles.statValue}>
-                    ${stats.paidAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <div className={`${styles.statValue} tabular`}>
+                    {formatMoney(stats.paidAmount, defaultCurrency)}
                   </div>
-                  <div className={styles.statLabel}>Paid Invoices</div>
+                  <div className={styles.statLabel}>Paid</div>
                 </div>
               </div>
 
               <div className={`glass-panel ${styles.statCard}`}>
-                <div className={styles.statIcon} style={{ background: "rgba(245, 158, 11, 0.1)", color: "#f59e0b" }}>
-                  <Clock size={24} />
+                <div className={`${styles.statIcon} ${styles.statIconAmber}`}>
+                  <Clock size={20} />
                 </div>
                 <div>
-                  <div className={styles.statValue}>{stats.pendingDrafts}</div>
-                  <div className={styles.statLabel}>Draft Invoices</div>
+                  <div className={`${styles.statValue} tabular`}>{stats.pendingDrafts}</div>
+                  <div className={styles.statLabel}>Drafts</div>
                 </div>
               </div>
 
               <div className={`glass-panel ${styles.statCard}`}>
-                <div className={styles.statIcon} style={{ background: "rgba(168, 85, 247, 0.1)", color: "#a855f7" }}>
-                  <DollarSign size={24} />
+                <div className={`${styles.statIcon} ${styles.statIconViolet}`}>
+                  <DollarSign size={20} />
                 </div>
                 <div>
-                  <div className={styles.statValue}>
-                    ${stats.totalDraftAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <div className={`${styles.statValue} tabular`}>
+                    {formatMoney(stats.totalDraftAmount, defaultCurrency)}
                   </div>
-                  <div className={styles.statLabel}>Total Draft Amount</div>
+                  <div className={styles.statLabel}>Unpaid drafts</div>
                 </div>
               </div>
             </div>
@@ -576,90 +645,42 @@ export default function DashboardClient({
               <h2 className={styles.sectionTitle}>Recent Invoices</h2>
               <button
                 onClick={() => handleSelectTab("builder")}
-                className={styles.btnNewInvoiceSidebar}
-                style={{ width: "auto", margin: 0, padding: "0.5rem 1rem" }}
+                className={styles.btnPrimary}
               >
                 <Plus size={16} />
-                Create Invoice
+                New invoice
               </button>
             </div>
 
             {invoices.length > 0 ? (
-              <div className={`glass-panel ${styles.recentCard}`} style={{ textAlign: "left" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Invoice #</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Client</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Date</th>
-                      <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
-                      <th style={{ padding: "0.75rem", textAlign: "right" }}>Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {invoices.slice(0, 5).map((inv) => {
-                      const style = getStatusBadgeStyle(inv.status);
-                      return (
-                        <tr key={inv.id} style={{ borderBottom: "1px solid var(--border)", fontSize: "0.9rem" }}>
-                          <td style={{ padding: "0.75rem", fontWeight: 600 }}>
-                            <button onClick={() => handleEditInvoice(inv.id)} style={{ color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0, textDecoration: 'underline' }}>
-                              {inv.invoiceNumber}
-                            </button>
-                          </td>
-                          <td style={{ padding: "0.75rem" }}>{inv.clientName}</td>
-                          <td style={{ padding: "0.75rem", color: "var(--text-muted)" }}>{inv.date}</td>
-                          <td style={{ padding: "0.75rem" }}>
-                            <select
-                              value={inv.status}
-                              onChange={(e) => handleStatusChange(inv.id, e.target.value)}
-                              style={{
-                                padding: "0.25rem 0.6rem",
-                                borderRadius: "999px",
-                                fontSize: "0.75rem",
-                                fontWeight: 600,
-                                background: style.bg,
-                                color: style.color,
-                                border: `1px solid ${style.border}`,
-                                cursor: "pointer",
-                                outline: "none",
-                              }}
-                            >
-                              <option value="DRAFT" style={{ background: "white", color: "#333" }}>DRAFT</option>
-                              <option value="SENT" style={{ background: "white", color: "#333" }}>SENT</option>
-                              <option value="PAID" style={{ background: "white", color: "#333" }}>PAID</option>
-                            </select>
-                          </td>
-                          <td style={{ padding: "0.75rem", textAlign: "right", fontWeight: 600 }}>
-                            {inv.currency || "$"} {inv.amount.toFixed(2)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className={`glass-panel ${styles.listCard}`}>
+                <InvoiceList
+                  invoices={invoices.slice(0, 5)}
+                  onEdit={handleEditInvoice}
+                  onStatusChange={handleStatusChange}
+                />
                 {invoices.length > 5 && (
-                  <div style={{ padding: "1rem", textAlign: "center", borderTop: "1px solid var(--border)" }}>
-                    <button onClick={() => handleSelectTab("invoices")} className={styles.btnOutline} style={{ fontSize: "0.875rem", padding: "0.5rem 1rem", background: "none", border: "1px solid var(--border)", borderRadius: "6px", cursor: "pointer" }}>
-                      View All Invoices
+                  <div className={styles.listFooter}>
+                    <button onClick={() => handleSelectTab("invoices")} className={styles.btnGhost}>
+                      View all invoices
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <div className={`glass-panel ${styles.recentCard}`}>
+              <div className={`glass-panel ${styles.listCard}`}>
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}>
                     <FileText size={32} />
                   </div>
-                  <h3>Ready to create your next invoice?</h3>
-                  <p>Generate professional client invoices right inside your SwiftBill workspace.</p>
+                  <h3 className={styles.emptyTitle}>No invoices yet</h3>
+                  <p>Create one and it will show up here.</p>
                   <button
                     onClick={() => handleSelectTab("builder")}
-                    className={styles.btnNewInvoiceSidebar}
-                    style={{ width: "auto", marginTop: "0.5rem" }}
+                    className={styles.btnPrimary}
                   >
                     <Plus size={18} />
-                    Create Invoice Now
+                    Create invoice
                   </button>
                 </div>
               </div>
@@ -672,79 +693,38 @@ export default function DashboardClient({
           <div>
             <h1 className={styles.pageTitle}>All Invoices</h1>
             <p className={styles.pageSubtitle}>
-              View and manage all your saved invoices. Click an invoice number to edit it.
+              Tap an invoice number to open it, or change its status right here.
             </p>
             
-            <div className={`glass-panel ${styles.recentCard}`} style={{ textAlign: "left", marginTop: "1.5rem" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                    <th style={{ padding: "0.75rem", textAlign: "left" }}>Invoice #</th>
-                    <th style={{ padding: "0.75rem", textAlign: "left" }}>Client</th>
-                    <th style={{ padding: "0.75rem", textAlign: "left" }}>Date</th>
-                    <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
-                    <th style={{ padding: "0.75rem", textAlign: "right" }}>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map((inv) => {
-                    const style = getStatusBadgeStyle(inv.status);
-                    return (
-                      <tr key={inv.id} style={{ borderBottom: "1px solid var(--border)", fontSize: "0.9rem" }}>
-                        <td style={{ padding: "0.75rem", fontWeight: 600 }}>
-                          <button onClick={() => handleEditInvoice(inv.id)} style={{ color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0, textDecoration: 'underline' }}>
-                            {inv.invoiceNumber}
-                          </button>
-                        </td>
-                        <td style={{ padding: "0.75rem" }}>{inv.clientName}</td>
-                        <td style={{ padding: "0.75rem", color: "var(--text-muted)" }}>{inv.date}</td>
-                        <td style={{ padding: "0.75rem" }}>
-                          <select
-                            value={inv.status}
-                            onChange={(e) => handleStatusChange(inv.id, e.target.value)}
-                            style={{
-                              padding: "0.25rem 0.6rem",
-                              borderRadius: "999px",
-                              fontSize: "0.75rem",
-                              fontWeight: 600,
-                              background: style.bg,
-                              color: style.color,
-                              border: `1px solid ${style.border}`,
-                              cursor: "pointer",
-                              outline: "none",
-                            }}
-                          >
-                            <option value="DRAFT" style={{ background: "white", color: "#333" }}>DRAFT</option>
-                            <option value="SENT" style={{ background: "white", color: "#333" }}>SENT</option>
-                            <option value="PAID" style={{ background: "white", color: "#333" }}>PAID</option>
-                          </select>
-                        </td>
-                        <td style={{ padding: "0.75rem", textAlign: "right", fontWeight: 600 }}>
-                          {inv.currency || "$"} {inv.amount.toFixed(2)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              
-              {/* Pagination Controls */}
+            <div className={`glass-panel ${styles.listCard}`}>
+              {invoices.length > 0 ? (
+                <InvoiceList
+                  invoices={invoices}
+                  onEdit={handleEditInvoice}
+                  onStatusChange={handleStatusChange}
+                />
+              ) : (
+                <div className={styles.emptyState}>
+                  <p>No invoices yet. Your saved invoices will show up here.</p>
+                </div>
+              )}
+
               {totalPages > 1 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderTop: '1px solid var(--border)' }}>
-                  <button 
+                <div className={styles.pagination}>
+                  <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid var(--border)', background: currentPage === 1 ? '#f1f5f9' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                    className={styles.btnGhost}
                   >
                     Previous
                   </button>
-                  <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                  <span className={styles.paginationLabel}>
                     Page {currentPage} of {totalPages}
                   </span>
-                  <button 
+                  <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid var(--border)', background: currentPage === totalPages ? '#f1f5f9' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                    className={styles.btnGhost}
                   >
                     Next
                   </button>
@@ -757,9 +737,9 @@ export default function DashboardClient({
         {/* TAB 3: INVOICE BUILDER */}
         {activeTab === "builder" && (
           <div>
-            <h1 className={styles.pageTitle}>{editingInvoice ? `Edit Invoice: ${editingInvoice.invoiceNumber}` : 'Invoice Builder'}</h1>
+            <h1 className={styles.pageTitle}>{editingInvoice ? `Edit ${editingInvoice.invoiceNumber}` : 'New invoice'}</h1>
             <p className={styles.pageSubtitle}>
-              Draft and download professional invoices instantly. Downloads auto-save to your account!
+              Fill in the details, then save or download the PDF. Downloads are saved to your account too.
             </p>
             <InvoiceGenerator 
               key={editingInvoice ? editingInvoice.id : 'new'}
@@ -778,17 +758,17 @@ export default function DashboardClient({
         {/* TAB 3: ACCOUNT & SECURITY */}
         {activeTab === "account" && (
           <div className={`glass-panel ${styles.settingsCard}`}>
-            <h1 className={styles.pageTitle} style={{ marginBottom: "0.5rem" }}>
+            <h1 className={styles.pageTitle}>
               Account & Security
             </h1>
             <p className={styles.pageSubtitle}>
-              Manage your profile picture, display name, and password security.
+              Your photo, display name and password.
             </p>
 
             {successMsg && <div className={styles.alertSuccess}>{successMsg}</div>}
             {errorMsg && <div className={styles.alertError}>{errorMsg}</div>}
 
-            <form onSubmit={handleSaveProfile} style={{ marginBottom: "2rem" }}>
+            <form onSubmit={handleSaveProfile}>
               <div className={styles.avatarSection}>
                 {avatar ? (
                   <img src={avatar} alt="Profile Avatar" className={styles.largeAvatar} />
@@ -799,7 +779,7 @@ export default function DashboardClient({
                 <div className={styles.avatarActions}>
                   <label className={styles.fileInputLabel}>
                     <Upload size={16} />
-                    Upload Custom Image
+                    Upload photo
                     <input
                       type="file"
                       accept="image/*"
@@ -818,8 +798,8 @@ export default function DashboardClient({
                       Remove Photo
                     </button>
                   )}
-                  <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                    Allowed JPG, PNG or WEBP (max 4MB).
+                  <span className={styles.hint}>
+                    JPG, PNG or WEBP, up to 4MB.
                   </span>
                 </div>
               </div>
@@ -840,15 +820,14 @@ export default function DashboardClient({
                   type="email"
                   value={user.email || ""}
                   disabled
-                  style={{ opacity: 0.7, cursor: "not-allowed" }}
+                  className={styles.inputDisabled}
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={styles.btnNewInvoiceSidebar}
-                style={{ width: "fit-content", marginTop: "1rem", padding: "0.625rem 1.5rem" }}
+                className={`${styles.btnPrimary} ${styles.btnSubmit}`}
               >
                 {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                 Save Profile
@@ -858,13 +837,13 @@ export default function DashboardClient({
             <div className={styles.divider} />
 
             <form onSubmit={handleUpdatePassword}>
-              <h3 className={styles.sectionTitle} style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>
-                <Lock size={18} style={{ display: "inline", marginRight: "0.5rem", verticalAlign: "text-bottom" }} />
-                Reset / Change Password
+              <h3 className={styles.subTitle}>
+                <Lock size={18} />
+                Change password
               </h3>
 
-              {passwordSuccessMsg && <div className={styles.alertSuccess} style={{ marginBottom: "1rem" }}>{passwordSuccessMsg}</div>}
-              {passwordErrorMsg && <div className={styles.alertError} style={{ marginBottom: "1rem" }}>{passwordErrorMsg}</div>}
+              {passwordSuccessMsg && <div className={styles.alertSuccess}>{passwordSuccessMsg}</div>}
+              {passwordErrorMsg && <div className={styles.alertError}>{passwordErrorMsg}</div>}
 
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Current Password</label>
@@ -900,8 +879,7 @@ export default function DashboardClient({
               <button
                 type="submit"
                 disabled={isSubmittingPassword}
-                className={styles.btnNewInvoiceSidebar}
-                style={{ width: "fit-content", marginTop: "1rem", padding: "0.625rem 1.5rem" }}
+                className={`${styles.btnPrimary} ${styles.btnSubmit}`}
               >
                 {isSubmittingPassword ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
                 Update Password
@@ -913,11 +891,11 @@ export default function DashboardClient({
         {/* TAB 4: SETTINGS */}
         {activeTab === "settings" && (
           <div className={`glass-panel ${styles.settingsCard}`}>
-            <h1 className={styles.pageTitle} style={{ marginBottom: "0.5rem" }}>
-              Business & Invoice Settings
+            <h1 className={styles.pageTitle}>
+              Business settings
             </h1>
             <p className={styles.pageSubtitle}>
-              Configure your default business info to auto-fill every new invoice.
+              These details fill in every new invoice automatically.
             </p>
 
             {successMsg && <div className={styles.alertSuccess}>{successMsg}</div>}
@@ -926,7 +904,7 @@ export default function DashboardClient({
             <form onSubmit={handleSaveBusinessSettings}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
-                  <Building size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
+                  <Building size={16} />
                   Business / Company Name
                 </label>
                 <input
@@ -940,7 +918,7 @@ export default function DashboardClient({
 
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
-                  <MapPin size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
+                  <MapPin size={16} />
                   Business Address
                 </label>
                 <textarea
@@ -953,7 +931,7 @@ export default function DashboardClient({
 
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
-                  <Mail size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
+                  <Mail size={16} />
                   Billing Contact Email
                 </label>
                 <input
@@ -966,7 +944,7 @@ export default function DashboardClient({
 
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
-                  <Phone size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
+                  <Phone size={16} />
                   Business Phone
                 </label>
                 <input
@@ -979,7 +957,7 @@ export default function DashboardClient({
 
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
-                  <Globe size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
+                  <Globe size={16} />
                   Default Invoice Currency
                 </label>
                 <select
@@ -997,7 +975,7 @@ export default function DashboardClient({
 
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
-                  <FileText size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
+                  <FileText size={16} />
                   Custom Invoice Prefix
                 </label>
                 <input
@@ -1007,16 +985,15 @@ export default function DashboardClient({
                   placeholder="e.g. INV-, BILL-, FAC-"
                   required
                 />
-                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.25rem", display: "block" }}>
-                  Changing prefix updates invoice labels (e.g. {invoicePrefix || "INV-"}001). The sequence counter keeps incrementing continuously without resetting.
+                <span className={styles.hint}>
+                  New invoices will look like {invoicePrefix || "INV-"}001. Numbering keeps counting up and never resets.
                 </span>
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={styles.btnNewInvoiceSidebar}
-                style={{ width: "fit-content", marginTop: "1rem", padding: "0.625rem 1.5rem" }}
+                className={`${styles.btnPrimary} ${styles.btnSubmit}`}
               >
                 {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Settings size={18} />}
                 Save Business Settings
@@ -1024,6 +1001,7 @@ export default function DashboardClient({
             </form>
           </div>
         )}
+        </div>
       </main>
     </div>
   );
