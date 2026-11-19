@@ -467,10 +467,15 @@ export default function DashboardClient({
     <div className={styles.dashboardLayout}>
       {/* Mobile Top Header */}
       <div className={styles.mobileHeader}>
-        <div className={styles.brandHeader}>
+        <button
+          type="button"
+          onClick={() => handleSelectTab("overview")}
+          className={styles.brandHeader}
+          aria-label="SwiftBill, go to Overview"
+        >
           <div className={styles.brandIcon}>S</div>
           <span className={styles.brandText}>SwiftBill</span>
-        </div>
+        </button>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className={styles.mobileMenuBtn}
@@ -489,10 +494,15 @@ export default function DashboardClient({
       {/* SIDEBAR NAVIGATION */}
       <aside className={`${styles.sidebar} ${mobileOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
-          <div className={styles.brandHeader}>
+          <button
+            type="button"
+            onClick={() => handleSelectTab("overview")}
+            className={styles.brandHeader}
+            aria-label="SwiftBill, go to Overview"
+          >
             <div className={styles.brandIcon}>S</div>
             <span className={styles.brandText}>SwiftBill</span>
-          </div>
+          </button>
 
           <nav className={styles.sidebarNav}>
             {/* 1. Overview */}
