@@ -17,19 +17,14 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://swiftbill-swart.vercel.app"),
   title: "SwiftBill | Professional Invoicing",
   description: "Manage clients, track items, and create professional PDF invoices instantly. The ultimate invoicing platform for freelancers and small businesses.",
+  applicationName: "SwiftBill",
+  // Preview image, favicon and app icons come from the files in this folder:
+  // opengraph-image.jpg, twitter-image.jpg, icon.png, apple-icon.png, favicon.ico
   openGraph: {
     title: "SwiftBill | Professional Invoicing",
     description: "Manage clients, track items, and create professional PDF invoices instantly. The ultimate invoicing platform for freelancers and small businesses.",
     url: "https://swiftbill-swart.vercel.app",
     siteName: "SwiftBill",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "SwiftBill Dashboard Preview",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -37,7 +32,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SwiftBill | Professional Invoicing",
     description: "Manage clients, track items, and create professional PDF invoices instantly.",
-    images: ["/og-image.png"],
   },
 };
 
