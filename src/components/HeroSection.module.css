@@ -142,23 +142,18 @@
 }
 
 @media (max-width: 760px) {
-  /* Phones: the photo sits on top as a clear banner, the text starts below his face */
-  .hero {
-    padding-top: clamp(19rem, 82vw, 24rem);
-  }
-
   .photo {
     right: 0;
     width: 100%;
-    height: clamp(26rem, 112vw, 32rem);
-    opacity: 1;
-    background-size: 125% auto;
-    background-position: 85% 10%;
-    mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+    height: 640px;
+    opacity: 0.6;
+    background-position: 75% 15%;
+    mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
   }
 
+  /* Phones: lighter shade so his face shows, darker only on the left behind the words */
   .photo::after {
-    background: linear-gradient(180deg, rgba(7, 13, 26, 0.55) 0%, rgba(7, 13, 26, 0) 22%, rgba(7, 13, 26, 0) 50%, rgba(7, 13, 26, 0.85) 100%);
+    background: linear-gradient(90deg, rgba(7, 13, 26, 0.6) 0%, rgba(7, 13, 26, 0.15) 70%);
     mix-blend-mode: normal;
   }
 }
