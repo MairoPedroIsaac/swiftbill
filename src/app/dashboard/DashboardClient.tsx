@@ -28,6 +28,9 @@ import {
 } from "lucide-react";
 import styles from "./Dashboard.module.css";
 import InvoiceGenerator from "@/components/InvoiceGenerator";
+import { formatMoney as sharedFormatMoney } from "@/utils/money";
+import LogoUploader from "@/components/LogoUploader";
+import { CURRENCIES } from "@/types/invoice";
 
 interface InvoiceItem {
   id: string;
@@ -60,6 +63,7 @@ interface DashboardClientProps {
       defaultCurrency?: string | null;
       invoicePrefix?: string | null;
       lastInvoiceNumber?: number | null;
+      logoUrl?: string | null;
     } | null;
     createdAt?: string | Date;
   };
@@ -76,17 +80,7 @@ interface DashboardClientProps {
 const STATUS_OPTIONS = ["DRAFT", "SENT", "PAID"] as const;
 
 function formatMoney(amount: number, currency?: string | null) {
-  const code = (currency || "USD").toUpperCase();
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: code,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${code} ${amount.toFixed(2)}`;
-  }
+  return sharedFormatMoney(amount, currency);
 }
 
 function formatDate(value: string) {
@@ -191,6 +185,7 @@ export default function DashboardClient({
   const [businessEmail, setBusinessEmail] = useState(user.businessProfile?.email || user.email || "");
   const [defaultCurrency, setDefaultCurrency] = useState(user.businessProfile?.defaultCurrency || "USD");
   const [invoicePrefix, setInvoicePrefix] = useState(user.businessProfile?.invoicePrefix || "INV-");
+  const [businessLogo, setBusinessLogo] = useState<string | null>(user.businessProfile?.logoUrl || null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
@@ -447,6 +442,7 @@ export default function DashboardClient({
           businessEmail,
           defaultCurrency,
           invoicePrefix,
+          businessLogo,
         }),
       });
 
@@ -595,14 +591,29 @@ export default function DashboardClient({
         {/* TAB 1: OVERVIEW */}
         {activeTab === "overview" && (
           <>
-            <div className={styles.pageHeader}>
-              <h1 className={styles.pageTitle}>Overview</h1>
-              <p className={styles.pageSubtitle}>
-                {stats.totalInvoices === 0
-                  ? `Welcome, ${displayName}. Create your first invoice to get started.`
-                  : `Welcome back, ${displayName}. Here is where your invoices stand.`}
-              </p>
-            </div>
+            <section className={styles.welcome}>
+              <div className={styles.welcomeText}>
+                <p className={styles.welcomeKicker}>Overview</p>
+                <h1 className={styles.welcomeTitle}>
+                  {stats.totalInvoices === 0 ? "Welcome," : "Welcome back,"}
+                  <br />
+                  <span>{displayName.split(" ")[0]}.</span>
+                </h1>
+                <p className={styles.welcomeSub}>
+                  {stats.totalInvoices === 0
+                    ? "Create your first invoice. It takes about a minute."
+                    : `You have ${stats.pendingDrafts} draft${stats.pendingDrafts === 1 ? "" : "s"} waiting to be sent.`}
+                </p>
+              </div>
+              <div className={styles.welcomeFigure}>
+                <span>Paid so far</span>
+                <strong className="tabular">{formatMoney(stats.paidAmount, defaultCurrency)}</strong>
+                <button onClick={() => handleSelectTab("builder")} className={styles.welcomeBtn}>
+                  <Plus size={18} />
+                  New invoice
+                </button>
+              </div>
+            </section>
 
             {/* Real-time Metric Cards */}
             <div className={styles.statsGrid}>
@@ -760,6 +771,10 @@ export default function DashboardClient({
               initialBusinessInfo={{
                 name: businessName,
                 address: businessAddress,
+                email: businessEmail,
+                phone: businessPhone,
+                logo: businessLogo,
+                currency: defaultCurrency,
               }}
             />
           </div>
@@ -913,6 +928,15 @@ export default function DashboardClient({
 
             <form onSubmit={handleSaveBusinessSettings}>
               <div className={styles.formGroup}>
+                <LogoUploader
+                  label="Business logo"
+                  value={businessLogo}
+                  onChange={setBusinessLogo}
+                  hint="Shown at the top of every invoice. A PNG with a transparent background looks best."
+                />
+              </div>
+
+              <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
                   <Building size={16} />
                   Business / Company Name
@@ -974,12 +998,11 @@ export default function DashboardClient({
                   value={defaultCurrency}
                   onChange={(e) => setDefaultCurrency(e.target.value)}
                 >
-                  <option value="USD">USD ($) - US Dollar</option>
-                  <option value="EUR">EUR (€) - Euro</option>
-                  <option value="GBP">GBP (£) - British Pound</option>
-                  <option value="CAD">CAD ($) - Canadian Dollar</option>
-                  <option value="AUD">AUD ($) - Australian Dollar</option>
-                  <option value="NGN">NGN (₦) - Nigerian Naira</option>
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} ({c.symbol}) - {c.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 

@@ -10,6 +10,10 @@ export interface InvoiceState {
   status?: string;
   senderName: string;
   senderAddress: string;
+  /** Optional contact lines and logo for the "From" block. The logo is a small data URL. */
+  senderEmail?: string;
+  senderPhone?: string;
+  logo?: string;
   clientName: string;
   clientAddress: string;
   invoiceNumber: string;
@@ -32,5 +36,7 @@ export const CURRENCIES = [
   { code: 'INR', symbol: '₹', label: 'Indian Rupee' },
   { code: 'CHF', symbol: 'CHF', label: 'Swiss Franc' },
   { code: 'CNY', symbol: '¥', label: 'Chinese Yuan' },
-  { code: 'ZAR', symbol: 'R', label: 'South African Rand' }
+  { code: 'ZAR', symbol: 'R', label: 'South African Rand' },
+  { code: 'RWF', symbol: 'FRw', label: 'Rwandan Franc' },
+  { code: 'KES', symbol: 'KSh', label: 'Kenyan Shilling' }
 ];

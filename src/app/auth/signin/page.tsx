@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
 import styles from "../Auth.module.css";
 
 // Friendly messages for the error codes NextAuth adds to the URL (?error=...)
@@ -29,7 +30,13 @@ export default function SignInPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get("error");
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("reset") === "1") {
+      toast.success("Password changed. Sign in with your new password.", { id: "pw-reset" });
+      // Clean the URL so a refresh doesn't show the message again
+      window.history.replaceState(null, "", "/auth/signin");
+    }
+    const code = params.get("error");
     if (code && code !== "CredentialsSignin") {
       setError(AUTH_ERRORS[code] || AUTH_ERRORS.Default);
     }
@@ -50,6 +57,7 @@ export default function SignInPage() {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
+        toast.success("Welcome back!", { id: "signed-in" });
         router.push("/dashboard");
         router.refresh();
       }
@@ -130,7 +138,12 @@ export default function SignInPage() {
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Password</label>
+          <div className={styles.labelRow}>
+            <label className={styles.label}>Password</label>
+            <Link href="/auth/forgot-password" className={styles.forgotLink}>
+              Forgot password?
+            </Link>
+          </div>
           <div className={styles.inputWrapper}>
             <Lock size={18} className={styles.inputIcon} />
             <input

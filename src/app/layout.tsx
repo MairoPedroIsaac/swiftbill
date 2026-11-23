@@ -18,7 +18,7 @@ const SITE_TITLE = "SwiftBill | Professional Invoicing";
 const SITE_DESCRIPTION =
   "Manage clients, track items, and create professional PDF invoices in seconds. Invoicing for freelancers and small businesses.";
 // Bump the ?v= number whenever public/og.jpg changes so apps fetch the new image.
-const OG_IMAGE = `${SITE_URL}/og.jpg?v=3`;
+const OG_IMAGE = `${SITE_URL}/og.jpg?v=4`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -69,7 +69,22 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <div className="mesh-bg"></div>
         {children}
-        <Toaster position="bottom-right" />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: "#0b1730",
+              color: "#fff",
+              borderRadius: "12px",
+              padding: "12px 16px",
+              fontSize: "0.95rem",
+              boxShadow: "0 12px 32px rgba(7, 13, 26, 0.28)",
+            },
+            success: { iconTheme: { primary: "#22c55e", secondary: "#0b1730" } },
+            error: { duration: 6000, iconTheme: { primary: "#f87171", secondary: "#0b1730" } },
+          }}
+        />
       </body>
     </html>
   );

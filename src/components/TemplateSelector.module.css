@@ -107,3 +107,28 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+.guestNote {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.guestNote a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--primary-hover);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.guestNote a:hover {
+  text-decoration: underline;
+}
+
+.downloadBtn.done,
+.downloadBtn.done:hover:not(:disabled) {
+  background: #16a34a;
+}

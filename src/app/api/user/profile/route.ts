@@ -18,6 +18,13 @@ const profileUpdateSchema = z.object({
   businessEmail: z.union([z.literal(""), z.string().email()]).nullable().optional(),
   defaultCurrency: z.string().optional(),
   invoicePrefix: z.string().optional(),
+  // Business logo: a small PNG/JPEG/WEBP data URL made in the browser (about 600x240 max)
+  businessLogo: z
+    .string()
+    .max(700_000, "Logo is too large")
+    .regex(/^data:image\/(png|jpeg|webp);base64,/, "Logo must be a PNG, JPG or WEBP image")
+    .nullable()
+    .optional(),
 });
 
 export async function GET() {
@@ -80,6 +87,7 @@ export async function PUT(req: NextRequest) {
       businessEmail,
       defaultCurrency,
       invoicePrefix,
+      businessLogo,
     } = parsed.data;
 
     const user = await prisma.user.findUnique({
@@ -192,7 +200,8 @@ export async function PUT(req: NextRequest) {
       businessPhone !== undefined ||
       businessEmail !== undefined ||
       defaultCurrency !== undefined ||
-      invoicePrefix !== undefined
+      invoicePrefix !== undefined ||
+      businessLogo !== undefined
     ) {
       await prisma.businessProfile.upsert({
         where: { userId: user.id },
@@ -203,6 +212,7 @@ export async function PUT(req: NextRequest) {
           email: businessEmail || null,
           defaultCurrency: defaultCurrency || "USD",
           ...(invoicePrefix !== undefined ? { invoicePrefix } : {}),
+          ...(businessLogo !== undefined ? { logoUrl: businessLogo } : {}),
         },
         create: {
           userId: user.id,
@@ -212,6 +222,7 @@ export async function PUT(req: NextRequest) {
           email: businessEmail || null,
           defaultCurrency: defaultCurrency || "USD",
           invoicePrefix: invoicePrefix || "INV-",
+          logoUrl: businessLogo || null,
         },
       });
     }

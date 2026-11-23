@@ -33,8 +33,9 @@
    ------------------------------------------------------------------ */
 .sidebar {
   width: 260px;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
+  background: #070d1a;
+  color: #fff;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   padding: 1.25rem 0.875rem;
   display: flex;
   flex-direction: column;
@@ -72,19 +73,23 @@
 }
 
 .brandHeader:hover .brandIcon {
-  background-color: var(--primary-hover);
+  background-color: #dbeafe;
+}
+
+.sidebar .brandHeader {
+  color: #fff;
 }
 
 .brandIcon {
   width: 2rem;
   height: 2rem;
-  background-color: var(--primary);
+  background-color: #fff;
+  color: var(--primary-hover) !important;
   border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1rem;
   flex-shrink: 0;
 }
@@ -107,7 +112,7 @@
   gap: 0.75rem;
   padding: 0.625rem 0.75rem;
   border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.62);
   font-weight: 500;
   font-size: 0.9375rem;
   border: none;
@@ -120,14 +125,14 @@
 }
 
 .navItem:hover {
-  color: var(--foreground);
-  background: #f1f5f9;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .activeNavItem,
 .activeNavItem:hover {
-  color: var(--primary);
-  background: var(--primary-soft);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
   font-weight: 600;
 }
 
@@ -159,7 +164,7 @@
   flex-direction: column;
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .userCard {
@@ -201,7 +206,7 @@
 }
 
 .userEmail {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 0.75rem;
   white-space: nowrap;
   overflow: hidden;
@@ -215,7 +220,7 @@
   padding: 0.625rem 0.75rem;
   min-height: 44px;
   border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.62);
   font-weight: 500;
   font-size: 0.875rem;
   background: transparent;
@@ -226,8 +231,8 @@
 }
 
 .btnSignOut:hover {
-  background-color: rgba(239, 68, 68, 0.08);
-  color: #dc2626;
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
 }
 
 /* ------------------------------------------------------------------
@@ -238,10 +243,10 @@
 }
 
 .pageTitle {
-  font-size: 1.625rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 800;
+  margin-bottom: 0.375rem;
+  letter-spacing: -0.04em;
   line-height: 1.2;
 }
 
@@ -759,10 +764,10 @@
     align-items: center;
     padding: 0.625rem 1rem;
     padding-top: max(0.625rem, env(safe-area-inset-top));
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(7, 13, 26, 0.94);
     -webkit-backdrop-filter: saturate(180%) blur(12px);
     backdrop-filter: saturate(180%) blur(12px);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     position: sticky;
     top: 0;
     z-index: 90;
@@ -771,12 +776,13 @@
 
   .mobileHeader .brandHeader {
     padding: 0;
+    color: #fff;
   }
 
   .mobileMenuBtn {
     background: transparent;
     border: none;
-    color: var(--foreground);
+    color: #fff;
     cursor: pointer;
     width: 44px;
     height: 44px;
@@ -788,7 +794,7 @@
   }
 
   .mobileMenuBtn:hover {
-    background: #f1f5f9;
+    background: rgba(255, 255, 255, 0.08);
   }
 
   .overlay {
@@ -815,7 +821,7 @@
 /* Phones: invoice rows become compact cards */
 @media (max-width: 640px) {
   .pageTitle {
-    font-size: 1.375rem;
+    font-size: 1.75rem;
   }
 
   .pageSubtitle {
@@ -882,5 +888,128 @@
 @media (max-width: 360px) {
   .statsGrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ------------------------------------------------------------------
+   Overview welcome banner (same mood as the homepage hero)
+   ------------------------------------------------------------------ */
+.welcome {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+  padding: clamp(1.5rem, 3.5vw, 2.5rem);
+  margin-bottom: 1.5rem;
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(60% 100% at 100% 100%, rgba(96, 165, 250, 0.55), transparent 65%),
+    linear-gradient(135deg, #070d1a 0%, #0d1f45 55%, #1d4ed8 100%);
+}
+
+.welcome::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(90deg, transparent, #000 70%);
+}
+
+.welcomeKicker {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #93c5fd;
+  margin-bottom: 0.75rem;
+}
+
+.welcomeTitle {
+  font-size: clamp(2.1rem, 5vw, 3.75rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.welcomeTitle span {
+  color: #60a5fa;
+}
+
+.welcomeSub {
+  margin-top: 1rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.975rem;
+  max-width: 40ch;
+}
+
+.welcomeFigure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.welcomeFigure > span {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.welcomeFigure strong {
+  font-size: clamp(1.75rem, 3.6vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.welcomeBtn {
+  margin-top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding: 0 1.25rem;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  color: #070d1a;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.welcomeBtn:hover {
+  background: #dbeafe;
+}
+
+.statCard {
+  border-radius: 18px;
+}
+
+@media (max-width: 640px) {
+  .welcome {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+  }
+
+  .welcomeFigure {
+    align-items: flex-start;
+    text-align: left;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .welcomeBtn {
+    width: 100%;
+    justify-content: center;
   }
 }

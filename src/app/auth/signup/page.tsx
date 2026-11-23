@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
 import styles from "../Auth.module.css";
 
 export default function SignUpPage() {
@@ -15,7 +16,6 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -29,7 +29,6 @@ export default function SignUpPage() {
     
     setIsLoading(true);
     setError("");
-    setSuccess("");
 
     try {
       const res = await fetch("/api/auth/register", {
@@ -59,11 +58,9 @@ export default function SignUpPage() {
         setError("Failed to auto-login. Please sign in manually.");
         setIsLoading(false);
       } else {
-        setSuccess("Registration successful! Redirecting to dashboard...");
-        setTimeout(() => {
-          router.push("/dashboard");
-          router.refresh();
-        }, 1500);
+        toast.success("Account created. Welcome to SwiftBill!", { id: "signed-up" });
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -191,16 +188,6 @@ export default function SignUpPage() {
 
         {error && <div className={styles.error}>{error}</div>}
         
-        {success && (
-          <div style={{ padding: "0.75rem", borderRadius: "8px", background: "#ecfdf5", color: "#059669", fontSize: "0.875rem", border: "1px solid #a7f3d0", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Eye size={18} style={{ display: 'none' }} /> {/* Just to satisfy lucide icon import if needed, or use a custom check circle */}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            {success}
-          </div>
-        )}
 
         <button
           type="submit"

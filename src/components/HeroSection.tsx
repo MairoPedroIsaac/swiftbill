@@ -1,41 +1,37 @@
-'use client';
-
-import React from 'react';
-import Link from 'next/link';
-import { ArrowDown, Check } from 'lucide-react';
-import styles from './HeroSection.module.css';
+import Link from "next/link";
+import { ArrowRight, ArrowDown } from "lucide-react";
+import ProductPreview from "./ProductPreview";
+import styles from "./HeroSection.module.css";
 
 export default function HeroSection() {
-  const scrollToGenerator = () => {
-    const element = document.getElementById('invoice-generator-tool');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <section className={styles.hero}>
-      <div className={styles.container}>
+      <div className={styles.glow} aria-hidden="true" />
+      <div className={styles.grid} aria-hidden="true" />
+      <div className={styles.photo} aria-hidden="true" />
+
+      <div className={styles.inner}>
+        <p className={styles.kicker}>Invoicing for freelancers and small teams</p>
         <h1 className={styles.title}>
-          Create professional invoices <span className={styles.highlight}>in seconds.</span>
+          <span>Invoices</span>
+          <span>that get</span>
+          <span className={styles.accent}>you paid.</span>
         </h1>
         <p className={styles.subtitle}>
-          Save your clients and items once, then turn out clean PDF invoices whenever you need them.
-          Everything stays in your account, so nothing gets lost.
+          Save your clients once. Send clean, professional PDF invoices in under a minute, from your laptop or your phone.
         </p>
         <div className={styles.actions}>
-          <button className={styles.ctaButton} onClick={scrollToGenerator}>
-            Create an invoice <ArrowDown size={18} />
-          </button>
-          <Link href="/auth/signup" className={styles.secondaryButton}>
-            Create a free account
+          <Link href="/auth/signup" className={styles.primary}>
+            Start free <ArrowRight size={18} />
           </Link>
+          <a href="#try-it" className={styles.secondary}>
+            Try it without an account <ArrowDown size={16} />
+          </a>
         </div>
-        <ul className={styles.points}>
-          <li><Check size={16} /> No card needed</li>
-          <li><Check size={16} /> Three PDF templates</li>
-          <li><Check size={16} /> Works on your phone</li>
-        </ul>
+      </div>
+
+      <div className={styles.preview}>
+        <ProductPreview />
       </div>
     </section>
   );

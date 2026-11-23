@@ -3,9 +3,10 @@
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Plus, Trash2 } from 'lucide-react';
-import { InvoiceState, LineItem, CURRENCIES } from '@/types/invoice';
+import { InvoiceState, LineItem } from '@/types/invoice';
 import styles from './LineItems.module.css';
 import NumericInput from './NumericInput';
+import { formatMoney, currencySymbol as symbolFor } from '@/utils/money';
 
 interface Props {
   state: InvoiceState;
@@ -14,7 +15,8 @@ interface Props {
 }
 
 export default function LineItems({ state, updateState, catalogItems = [] }: Props) {
-  const currencySymbol = CURRENCIES.find(c => c.code === state.currency)?.symbol || '$';
+  const currencySymbol = symbolFor(state.currency);
+  const money = (n: number) => formatMoney(n, state.currency);
 
   const updateItem = (id: string, field: keyof LineItem, value: any) => {
     const newItems = state.items.map(item => 
@@ -80,17 +82,20 @@ export default function LineItems({ state, updateState, catalogItems = [] }: Pro
               />
             </div>
             <div className={styles.colRate}>
-              <div className={styles.inputWithSymbol}>
+              <div
+                className={styles.inputWithSymbol}
+                style={{ '--sym-chars': currencySymbol.length } as React.CSSProperties}
+              >
                 <span className={styles.symbol}>{currencySymbol}</span>
                 <NumericInput 
                   value={item.rate}
                   onChange={(val) => updateItem(item.id, 'rate', val)}
-                  placeholder="0.00"
+                  placeholder="0"
                 />
               </div>
             </div>
             <div className={styles.colAmount}>
-              {currencySymbol} {(item.quantity * item.rate).toFixed(2)}
+              {money(item.quantity * item.rate)}
             </div>
             <div className={styles.colAction}>
               <button 
@@ -119,17 +124,17 @@ export default function LineItems({ state, updateState, catalogItems = [] }: Pro
         <div className={styles.totalsWrapper}>
           <div className={styles.totalsRow}>
             <span>Subtotal:</span>
-            <span>{currencySymbol} {subtotal.toFixed(2)}</span>
+            <span className={styles.money}>{money(subtotal)}</span>
           </div>
           {state.taxRate > 0 && (
             <div className={styles.totalsRow}>
               <span>Tax ({state.taxRate}%):</span>
-              <span>{currencySymbol} {tax.toFixed(2)}</span>
+              <span className={styles.money}>{money(tax)}</span>
             </div>
           )}
           <div className={`${styles.totalsRow} ${styles.grandTotal}`}>
             <span>Total:</span>
-            <span>{currencySymbol} {total.toFixed(2)}</span>
+            <span className={styles.money}>{money(total)}</span>
           </div>
         </div>
       </div>

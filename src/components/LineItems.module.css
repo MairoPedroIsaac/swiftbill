@@ -28,8 +28,9 @@
 
 .colDesc { flex: 2; }
 .colQty { width: 80px; flex-shrink: 0; }
-.colRate { width: 120px; flex-shrink: 0; }
-.colAmount { width: 100px; flex-shrink: 0; font-weight: 500; text-align: right; }
+.colRate { width: 150px; flex-shrink: 0; }
+.colAmount { width: 150px; flex-shrink: 0; font-weight: 500; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.money { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .colAction { width: 40px; flex-shrink: 0; display: flex; justify-content: center; }
 
 .inputWithSymbol {
@@ -42,10 +43,14 @@
   position: absolute;
   left: 0.75rem;
   color: var(--text-muted);
+  font-size: 0.9rem;
+  pointer-events: none;
 }
 
+/* Room for the symbol, whether it is "$" or "FRw" */
 .inputWithSymbol input {
-  padding-left: 2rem;
+  padding-left: calc(var(--sym-chars, 1) * 0.6em + 1.15rem);
+  font-variant-numeric: tabular-nums;
 }
 
 .deleteBtn {
@@ -97,7 +102,7 @@
 }
 
 .totalsWrapper {
-  width: min(300px, 100%);
+  width: min(340px, 100%);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -106,6 +111,7 @@
 .totalsRow {
   display: flex;
   justify-content: space-between;
+  gap: 1rem;
   color: var(--text-muted);
 }
 
@@ -146,8 +152,8 @@
     border-radius: 8px;
   }
   .colDesc { width: 100%; flex: none; }
-  .colQty { width: calc(50% - 0.5rem); }
-  .colRate { width: calc(50% - 0.5rem); }
+  .colQty { width: calc(34% - 0.5rem); }
+  .colRate { width: calc(66% - 0.5rem); }
   .colAmount { width: auto; flex: 1; text-align: left; margin-top: 0.5rem; }
   .colAction { width: auto; margin-top: 0.5rem; }
   .totalsContainer { margin-top: 1.5rem; padding-top: 1.5rem; }

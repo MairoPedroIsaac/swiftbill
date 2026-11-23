@@ -1,6 +1,7 @@
-import HeroSection from '@/components/HeroSection';
-import InvoiceGenerator from '@/components/InvoiceGenerator';
 import Header from '@/components/Header';
+import HeroSection from '@/components/HeroSection';
+import { ProofStrip, HowItWorks, MadeFor, Features, TryItIntro, CtaBand } from '@/components/LandingSections';
+import InvoiceGenerator from '@/components/InvoiceGenerator';
 import Footer from '@/components/Footer';
 
 export default function Home() {
@@ -9,7 +10,13 @@ export default function Home() {
       <main>
         <Header />
         <HeroSection />
+        <ProofStrip />
+        <HowItWorks />
+        <MadeFor />
+        <Features />
+        <TryItIntro />
         <InvoiceGenerator />
+        <CtaBand />
       </main>
       <Footer />
     </>

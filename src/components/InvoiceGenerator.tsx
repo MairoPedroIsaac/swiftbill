@@ -11,17 +11,37 @@ import TemplateSelector from './TemplateSelector';
 
 const STORAGE_KEY = 'swiftbill_invoice_draft';
 
-const getInitialState = (info?: { name: string; address: string }, editData?: InvoiceState): InvoiceState => {
-  if (editData) return { ...editData };
+export interface BusinessInfo {
+  name: string;
+  address: string;
+  email?: string;
+  phone?: string;
+  logo?: string | null;
+  currency?: string;
+}
+
+const getInitialState = (info?: BusinessInfo, editData?: InvoiceState): InvoiceState => {
+  if (editData) {
+    // Saved invoices don't store the logo or contact lines, so take them from the business profile
+    return {
+      ...editData,
+      logo: editData.logo ?? info?.logo ?? undefined,
+      senderEmail: editData.senderEmail ?? info?.email,
+      senderPhone: editData.senderPhone ?? info?.phone,
+    };
+  }
   return {
     senderName: info?.name || '',
     senderAddress: info?.address || '',
+    senderEmail: info?.email || '',
+    senderPhone: info?.phone || '',
+    logo: info?.logo || undefined,
     clientName: '',
     clientAddress: '',
     invoiceNumber: 'INV-001',
     date: new Date().toISOString().split('T')[0],
     dueDate: '',
-    currency: 'USD',
+    currency: info?.currency || 'USD',
     taxRate: 0,
     notes: '',
     terms: 'Please pay within 14 days of receiving this invoice.',
@@ -31,7 +51,7 @@ const getInitialState = (info?: { name: string; address: string }, editData?: In
 
 interface InvoiceGeneratorProps {
   onInvoiceSaved?: (invoice: any, isDownload: boolean) => void;
-  initialBusinessInfo?: { name: string; address: string };
+  initialBusinessInfo?: BusinessInfo;
   editingInvoice?: InvoiceState | null;
 }
 
@@ -40,6 +60,9 @@ export default function InvoiceGenerator({ onInvoiceSaved, initialBusinessInfo, 
   const [isHydrated, setIsHydrated] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState("");
+
+  // On the public homepage there is no account, so nothing is fetched or saved to the server
+  const isGuest = !onInvoiceSaved;
 
   const [customers, setCustomers] = useState<any[]>([]);
   const [catalogItems, setCatalogItems] = useState<any[]>([]);
@@ -66,8 +89,8 @@ export default function InvoiceGenerator({ onInvoiceSaved, initialBusinessInfo, 
   };
 
   useEffect(() => {
-    fetchBusinessData();
-  }, []);
+    if (!isGuest) fetchBusinessData();
+  }, [isGuest]);
 
   const handleInvoiceSavedWrapper = (invoice: any, isDownload: boolean) => {
     fetchBusinessData();
@@ -97,7 +120,8 @@ export default function InvoiceGenerator({ onInvoiceSaved, initialBusinessInfo, 
           if (!parsed.senderAddress && initialBusinessInfo?.address) {
             parsed.senderAddress = initialBusinessInfo.address;
           }
-          setState(parsed);
+          // Merge over the defaults so an old or partial draft never leaves fields undefined
+          setState((prev) => ({ ...prev, ...parsed }));
           setLastSavedTime('Restored');
         }
       }
@@ -114,9 +138,19 @@ export default function InvoiceGenerator({ onInvoiceSaved, initialBusinessInfo, 
         ...prev,
         senderName: initialBusinessInfo.name || prev.senderName,
         senderAddress: initialBusinessInfo.address || prev.senderAddress,
+        senderEmail: initialBusinessInfo.email || prev.senderEmail,
+        senderPhone: initialBusinessInfo.phone || prev.senderPhone,
+        logo: initialBusinessInfo.logo || prev.logo,
       }));
     }
-  }, [initialBusinessInfo?.name, initialBusinessInfo?.address, editingInvoice]);
+  }, [
+    initialBusinessInfo?.name,
+    initialBusinessInfo?.address,
+    initialBusinessInfo?.email,
+    initialBusinessInfo?.phone,
+    initialBusinessInfo?.logo,
+    editingInvoice,
+  ]);
 
   // 2. Autosave state changes to localStorage (only if not editing an existing saved invoice)
   useEffect(() => {
@@ -240,7 +274,11 @@ export default function InvoiceGenerator({ onInvoiceSaved, initialBusinessInfo, 
             <LineItems state={state} updateState={updateState} catalogItems={catalogItems} />
           </div>
           <div className={styles.sidebar}>
-            <TemplateSelector state={state} onInvoiceSaved={handleInvoiceSavedWrapper} />
+            <TemplateSelector
+              state={state}
+              canSave={!isGuest}
+              onInvoiceSaved={handleInvoiceSavedWrapper}
+            />
           </div>
         </div>
       </div>

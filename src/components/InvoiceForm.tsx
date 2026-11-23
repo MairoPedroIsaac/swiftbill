@@ -5,6 +5,7 @@ import { InvoiceState, CURRENCIES } from '@/types/invoice';
 import styles from './InvoiceForm.module.css';
 
 import NumericInput from './NumericInput';
+import LogoUploader from './LogoUploader';
 
 interface Props {
   state: InvoiceState;
@@ -15,6 +16,12 @@ interface Props {
 export default function InvoiceForm({ state, updateState, customers = [] }: Props) {
   return (
     <div className={styles.formContainer}>
+      <LogoUploader
+        label="Your logo (optional)"
+        value={state.logo}
+        onChange={(logo) => updateState('logo', logo || undefined)}
+      />
+
       <div className={styles.row}>
         <div className={styles.fieldGroup}>
           <label>Your Business Name</label>
