@@ -12,6 +12,19 @@ It removes the unnecessary complexity of traditional accounting software and pro
 
 **[View Live Application](https://swiftbill-swart.vercel.app/)**
 
+## 📱 Mobile App
+
+SwiftBill also has an **Android app** built with React Native and Expo. It uses the same accounts and the same database as this web app, so invoices created on the phone appear here, and the other way round.
+
+* **Source code:** [MairoPedroIsaac/swiftbill-mobile](https://github.com/MairoPedroIsaac/swiftbill-mobile)
+* **Download the APK:** [latest release](https://github.com/MairoPedroIsaac/swiftbill-mobile/releases/latest)
+
+To support the app, this repo includes a small mobile API layer:
+
+* `POST /api/mobile/login` returns a signed token for email and password sign in
+* `/mobile-auth` runs Google sign in on the web, then hands a token back to the app through a deep link (`swiftbillmobile://`)
+* Protected API routes accept **either** a NextAuth cookie (web) **or** a `Bearer` token (mobile), see `src/lib/mobileAuth.ts`
+
 
 ---
 
@@ -276,6 +289,7 @@ SwiftBill demonstrates practical implementation of:
 * Server-side pagination
 * Transaction-safe database operations
 * Responsive UI development
+* Token based API auth shared with a React Native mobile app
 
 ---
 
